@@ -25,9 +25,9 @@ AssetFlow는 기업/기관 내부에서 도서, 문서, 장비 등의 자산을 
 - Gradle
 - Lombok
 
-## ERD
+## ERD 구조
 
-ERD 이미지 추가 예정
+![ERD](./erd1.png)
 
 ## 개발 기록
 
