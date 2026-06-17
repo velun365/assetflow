@@ -1,10 +1,14 @@
 package com.assetflow.member;
 
 import com.assetflow.department.Department;
+import com.assetflow.loan.Loan;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -14,6 +18,7 @@ public class Member {
     @GeneratedValue
     @Column(name = "member_id")
     private Long id;
+    private String loginId;
     private String email;
     private String password;
     private String name;

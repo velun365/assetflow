@@ -1,13 +1,18 @@
 package com.assetflow.asset;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Asset {
     @Id
     @GeneratedValue
@@ -18,8 +23,20 @@ public class Asset {
 
     @Enumerated(EnumType.STRING)
     private AssetType assetType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @OneToMany(mappedBy = "asset")
+    private List<AssetItem> assetItems = new ArrayList<>();
+
+    public void changeCategory(Category category) {
+        this.category = category;
+        category.getAssets().add(this);
+    }
+
 //    @CreatedDate
 //    private LocalDateTime createDate;
-
 
 }
