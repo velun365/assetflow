@@ -41,45 +41,31 @@
 
 ---
 
-## Day 3 - 대여 도메인 및 ERD 설계
+## Day 3 - ERD 정리 및 MemberService 구현
 
 ### 완료
+- ERD 초안 정리
+- FK 위치 정리
+  - Department 1:N Member
+  - Category 1:N Asset
+  - Asset 1:N AssetItem
+  - Member 1:N Loan
+  - AssetItem 1:N Loan
+- Member 엔티티에 loginId 추가
+- MemberRepository 생성
+- MemberService 구현
+  - 회원가입
+  - 중복 loginId 검증
+  - 회원 목록 조회
+  - 회원 단건 조회
+- MemberServiceTest 작성
+  - 회원가입 성공 테스트
+  - 중복 회원 예외 테스트
 
-* Loan 엔티티 설계
-* LoanStatus 설계
-* AssetItemStatus 설계
-* ERD 초안 작성
-* 테이블 관계 설계
-
-### ERD 관계
-
-* Department (1) : Member (N)
-* Category (1) : Asset (N)
-* Asset (1) : AssetItem (N)
-* Member (1) : Loan (N)
-* AssetItem (1) : Loan (N)
-
-### 설계 고민
-
-#### Loan 분리
-
-대여 이력을 관리하기 위해 Loan 엔티티를 별도로 분리하였다.
-
-관리 항목
-
-* 대여일
-* 반납 예정일
-* 실제 반납일
-* 대여 상태
-
-#### FK 위치 이해
-
-ERD 작성 과정에서 FK가 항상 N측 테이블에 위치한다는 점을 학습하였다.
-
-예시
-
-* Member.department_id
-* Asset.category_id
-* AssetItem.asset_id
-* Loan.member_id
-* Loan.asset_item_id
+### 오늘 배운 것
+- `@ManyToOne` 쪽이 FK를 가진다.
+- `@JoinColumn`은 FK 컬럼명을 지정할 때 사용한다.
+- `@Column`은 일반 컬럼에 사용한다.
+- 단방향 매핑만으로도 Repository 조회가 가능하다.
+- 중복 회원 검증은 이름이 아니라 loginId 기준으로 해야 한다.
+- `assertThrows`는 예외 발생을 검증하는 테스트다.

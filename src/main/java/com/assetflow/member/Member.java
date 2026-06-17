@@ -36,5 +36,12 @@ public class Member {
         department.getMembers().add(this);
     }
 
-
+    public Member(String loginId, String email, String password, String name) {
+        this.loginId = loginId;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = Role.USER;
+        this.status = MemberStatus.ACTIVE;
+    }
 }
