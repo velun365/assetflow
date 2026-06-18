@@ -22,4 +22,7 @@ public class Category {
     @OneToMany(mappedBy = "category")
     private List<Asset> assets = new ArrayList<>();
 
+    public Category(String name) {
+        this.name = name;
+    }
 }

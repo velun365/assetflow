@@ -16,7 +16,7 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
 
     @Test
-    public void 테스트() {
+    public void join_test() {
 
         Member member1 = new Member("test01", "test1@test.com", "1234", "홍길동");
         Member member2 = new Member("test02", "test2@test.com", "1234", "홍길동");
