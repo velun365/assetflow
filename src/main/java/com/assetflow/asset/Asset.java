@@ -33,7 +33,13 @@ public class Asset {
         category.getAssets().add(this);
     }
 
-//    @CreatedDate
+    public Asset(String name, String explanation, AssetType assetType) {
+        this.name = name;
+        this.explanation = explanation;
+        this.assetType = assetType;
+    }
+
+    //    @CreatedDate
 //    private LocalDateTime createDate;
 
 }
