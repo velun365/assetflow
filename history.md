@@ -151,3 +151,55 @@
 - 예외 처리 흐름은 이해했지만, `@ExceptionHandler`, `@RestControllerAdvice`, HTTP 상태코드 매핑은 복습이 필요하다.
 - 현재 예외 처리는 단순 구조이므로 추후 `ErrorCode`, `CustomException`, 공통 응답 포맷으로 확장할 필요가 있다.
 - 비밀번호 암호화와 Spring Security/JWT 로그인은 아직 적용하지 않았고, 추후 별도 구현이 필요하다.
+
+
+---
+
+## Day 4 - Category / Asset 등록 기능 구현
+
+### 완료
+
+- Category 등록 API 구현
+  - `POST /api/categories`
+  - `CategoryCreateRequest`로 요청 데이터 수신
+  - `CategoryCreateResponse`로 응답 반환
+- Category 중복 이름 검증 구현
+  - `findByName`을 사용해 동일 카테고리명 등록 방지
+- Category 삭제 API 초안 구현
+  - `DELETE /api/categories/{categoryId}`
+  - 존재하지 않는 카테고리 삭제 요청 시 예외 처리
+  - Asset이 연결된 Category는 삭제하지 못하도록 검증 시도
+- Asset 등록 API 구현
+  - `POST /api/assets`
+  - `AssetCreateRequest`로 요청 데이터 수신
+  - `categoryId`로 Category 조회 후 Asset과 연결
+  - `AssetCreateResponse`로 응답 반환
+- Asset과 Category 연관관계 연결 흐름 구현
+  - DTO에서는 `categoryId`를 받고
+  - Service에서 Category 엔티티를 조회한 뒤
+  - Asset 엔티티에 연결하는 구조로 구현
+- AssetItem 등록 기능 설계 시작
+  - AssetItem은 Asset이 먼저 존재해야 등록 가능하다는 흐름 정리
+  - Request DTO에는 `assetId`, `serialNumber`, `location`이 필요하다고 판단
+
+### 오늘 배운 것
+
+- `ManyToOne`으로 연결된 엔티티는 Request DTO에서 객체가 아니라 id로 받는다.
+- DTO의 `categoryId`, `assetId`는 클라이언트가 이전 API 응답에서 받은 id를 다음 요청에 넘기는 값이다.
+- Entity는 객체 관계를 가진다. 예: `Asset.category`, `AssetItem.asset`
+- DTO는 요청/응답에 필요한 값만 가진다. 예: `categoryId`, `assetId`
+- `ResponseEntity.noContent().build()`는 삭제 성공 시 204 No Content 응답을 만들 때 사용한다.
+- `findById(...).orElseThrow(...)`는 데이터가 없을 경우 예외를 발생시키고, 있으면 엔티티를 꺼내는 방식이다.
+- LAZY 연관관계 컬렉션에 접근할 때 트랜잭션 범위가 중요하다.
+- `LazyInitializationException`은 트랜잭션/영속성 컨텍스트 밖에서 지연 로딩 객체에 접근할 때 발생할 수 있다.
+
+### 부족한 점 / 추후 학습 필요
+
+- `ManyToOne` 관계에서 DTO에 왜 Entity가 아니라 id를 받는지 더 반복해서 익숙해질 필요가 있다.
+- `categoryId`, `assetId`처럼 이전 API 응답의 id를 다음 요청에서 사용하는 흐름이 아직 낯설다.
+- `@Transactional`, 영속성 컨텍스트, LAZY 로딩의 관계를 더 복습해야 한다.
+- `LazyInitializationException` 발생 원인과 해결 방법을 별도로 정리할 필요가 있다.
+- Controller는 Service만 의존하고, Repository를 직접 의존하지 않는 계층 구조를 더 익숙하게 만들어야 한다.
+- REST API 경로 설계에서 `POST`, `DELETE`, 복수형 리소스 경로 사용을 더 연습해야 한다.
+- `ResponseEntity<Void>`, `noContent()` 같은 HTTP 응답 제어 방식이 아직 익숙하지 않다.
+- AssetItem 등록 흐름에서 `assetId`가 왜 필요한지 처음에 헷갈렸으므로, Entity 관계와 DTO 설계를 다시 복습해야 한다.
