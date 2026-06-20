@@ -206,7 +206,7 @@
 
 ---
 
-## Day 5 - AssetItem 등록 및 Loan 대여/반납 기능 구현
+## Day 6 - AssetItem 등록 및 Loan 대여/반납 기능 구현
 
 ### 완료
 
