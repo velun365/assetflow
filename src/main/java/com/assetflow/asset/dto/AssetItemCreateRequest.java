@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class AssetItemCreateRequest {
-    private Long assetId;
     private String serialNumber;
     private String location;
+    private Long assetId;
 
 }

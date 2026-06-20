@@ -203,3 +203,52 @@
 - REST API 경로 설계에서 `POST`, `DELETE`, 복수형 리소스 경로 사용을 더 연습해야 한다.
 - `ResponseEntity<Void>`, `noContent()` 같은 HTTP 응답 제어 방식이 아직 익숙하지 않다.
 - AssetItem 등록 흐름에서 `assetId`가 왜 필요한지 처음에 헷갈렸으므로, Entity 관계와 DTO 설계를 다시 복습해야 한다.
+
+---
+
+## Day 5 - AssetItem 등록 및 Loan 대여/반납 기능 구현
+
+### 완료
+
+- AssetItem 등록 API 구현
+  - `POST /api/asset-items`
+  - `AssetItemCreateRequest`로 `serialNumber`, `location`, `assetId` 수신
+  - `assetId`로 Asset 조회 후 AssetItem 연결
+  - 신규 AssetItem 상태를 `AVAILABLE`로 기본 설정
+- AssetItem 상태 변경 메서드 구현
+  - `rentAsset()` → `RENTED`
+  - `returnAsset()` → `AVAILABLE`
+- Loan 생성 API 구현
+  - `POST /api/loans`
+  - `memberId`, `assetItemId`로 Member와 AssetItem 조회
+  - AssetItem이 `AVAILABLE`일 때만 대여 가능
+  - 대여 성공 시 AssetItem 상태를 `RENTED`로 변경
+  - Loan 상태를 `RENTED`로 저장
+  - 대여일과 반납 예정일 자동 설정
+- Loan 반납 API 구현
+  - `POST /api/loans/{loanId}/return`
+  - loanId로 Loan 조회
+  - Loan 상태가 `RENTED`일 때만 반납 처리
+  - Loan 상태를 `RETURNED`로 변경
+  - AssetItem 상태를 `AVAILABLE`로 변경
+  - 실제 반납일 저장
+- Postman으로 전체 흐름 테스트
+  - 회원 생성
+  - 카테고리 생성
+  - 자산 생성
+  - 자산 품목 생성
+  - 대여 생성
+  - 동일 품목 중복 대여 방지 확인
+  - 반납 처리 확인
+
+### 오늘 배운 것
+
+- `ManyToOne` 관계에서 DTO는 Entity 객체가 아니라 id를 받는다.
+- `AssetItemCreateRequest`에는 `assetId`가 필요하다.
+- `LoanCreateRequest`에는 `memberId`, `assetItemId`가 필요하다.
+- 서버가 생성한 id를 클라이언트가 다음 요청에서 다시 넘기는 흐름을 이해했다.
+- `@RequestBody`가 없으면 JSON body가 DTO에 바인딩되지 않아 필드가 null이 될 수 있다.
+- 대여 생성은 단순 저장이 아니라 AssetItem 상태 변경까지 함께 처리해야 한다.
+- 반납은 Loan 상태와 AssetItem 상태를 함께 변경해야 한다.
+- `POST`는 생성/상태 변경에 사용하고, `GET`은 조회에 사용한다.
+- URL PathVariable 방식과 RequestBody DTO 방식의 차이를 이해했다.x

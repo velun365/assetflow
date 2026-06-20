@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class AssetCreateRequest {
-    private Long
     private String name;
     private String explanation;
     private AssetType assetType;

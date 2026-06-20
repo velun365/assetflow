@@ -31,6 +31,13 @@ public class AssetItem {
         this.assetItemStatus = AssetItemStatus.AVAILABLE;
     }
 
+    public void rentAsset() {
+        this.assetItemStatus = AssetItemStatus.RENTED;
+    }
+    public void returnAsset() {
+        this.assetItemStatus = AssetItemStatus.AVAILABLE;
+    }
+
     public void changeAsset(Asset asset) {
         this.asset = asset;
         asset.getAssetItems().add(this);
