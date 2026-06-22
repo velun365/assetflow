@@ -1,8 +1,6 @@
 package com.assetflow.loan.dto;
 
-import com.assetflow.asset.AssetItem;
 import com.assetflow.loan.LoanStatus;
-import com.assetflow.member.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @AllArgsConstructor
-public class LoanCreateResponse {
+public class LoanListResponse {
     private Long loanId;
     private LoanStatus loanStatus;
     private Long memberId;

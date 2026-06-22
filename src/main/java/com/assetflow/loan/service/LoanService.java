@@ -5,15 +5,15 @@ import com.assetflow.asset.AssetItemStatus;
 import com.assetflow.asset.repository.AssetItemRepository;
 import com.assetflow.loan.Loan;
 import com.assetflow.loan.LoanStatus;
-import com.assetflow.loan.dto.LoanCreateRequest;
-import com.assetflow.loan.dto.LoanCreateResponse;
-import com.assetflow.loan.dto.LoanReturnResponse;
+import com.assetflow.loan.dto.*;
 import com.assetflow.loan.repository.LoanRepository;
 import com.assetflow.member.Member;
 import com.assetflow.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +71,33 @@ public class LoanService {
         }
         throw new IllegalStateException("이미 반납된 대여 입니다.");
 
+    }
+
+    //전체 조회
+    public List<LoanListResponse> listAll() {
+        return loanRepository.findAll().stream()
+                .map(loan -> new LoanListResponse(
+                        loan.getId(),
+                        loan.getLoanStatus(),
+                        loan.getMember().getId(),
+                        loan.getAssetItem().getId(),
+                        loan.getLoanDate(),
+                        loan.getDueDate(),
+                        loan.getReturnDate()
+                ))
+                .toList();
+    }
+
+    public List<MyLoanListResponse> findLoansByMember(Long memberId) {
+        return loanRepository.findByMemberId(memberId).stream()
+                .map(loan -> new MyLoanListResponse(
+                    loan.getId(),
+                    loan.getLoanStatus(),
+                    loan.getMember().getId(),
+                    loan.getLoanDate(),
+                    loan.getDueDate(),
+                    loan.getReturnDate()
+                ))
+                .toList();
     }
 }

@@ -1,10 +1,13 @@
 package com.assetflow.asset;
 
-import com.assetflow.loan.Loan;
+import com.assetflow.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -23,6 +26,9 @@ public class AssetItem {
 
     @Enumerated(EnumType.STRING)
     private AssetItemStatus assetItemStatus;
+
+    @OneToMany(mappedBy = "assetItem")
+    private List<Reservation> reservations = new ArrayList<>();
 
     public AssetItem(String serialNumber, String location, Asset asset) {
         this.serialNumber = serialNumber;

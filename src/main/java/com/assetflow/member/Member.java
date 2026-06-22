@@ -2,6 +2,7 @@ package com.assetflow.member;
 
 import com.assetflow.department.Department;
 import com.assetflow.loan.Loan;
+import com.assetflow.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,10 +27,13 @@ public class Member {
     private Role role;
     @Enumerated(EnumType.STRING)
     private MemberStatus status;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
+
+    @OneToMany(mappedBy = "member")
+    private List<Reservation> reservations = new ArrayList<>();
+
 
     public void changeDepartment(Department department) {
         this.department = department;

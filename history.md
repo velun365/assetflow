@@ -252,3 +252,62 @@
 - 반납은 Loan 상태와 AssetItem 상태를 함께 변경해야 한다.
 - `POST`는 생성/상태 변경에 사용하고, `GET`은 조회에 사용한다.
 - URL PathVariable 방식과 RequestBody DTO 방식의 차이를 이해했다.x
+
+## Day 7 - 대여 조회 및 예약 기능 구현
+
+### 완료
+
+- Loan 조회 API 구현
+  - 전체 대여 이력 조회
+  - 회원별 대여 이력 조회
+  - Loan 엔티티를 직접 반환하지 않고 `LoanListResponse` DTO로 변환
+- Reservation 엔티티 설계 및 구현
+  - Member와 Reservation 연관관계 설정
+  - AssetItem과 Reservation 연관관계 설정
+  - 예약 상태 `WAITING` 기본 설정
+  - 예약일 `reservedAt` 자동 저장
+- Reservation 생성 API 구현
+  - `POST /api/reservations`
+  - `memberId`, `assetItemId`로 Member와 AssetItem 조회
+  - AssetItem이 `RENTED` 상태일 때만 예약 가능
+  - 예약 성공 시 Reservation 저장 및 응답 반환
+- Reservation 조회 API 구현
+  - 전체 예약 조회
+  - 회원별 예약 조회
+  - Reservation 엔티티를 직접 반환하지 않고 DTO로 변환
+- Postman 테스트 및 오류 수정
+  - `mappedBy`에 DB 컬럼명이 아니라 상대 엔티티 필드명을 써야 한다는 점 확인
+  - `/api/reservation`과 `/api/reservations` 경로 불일치 수정
+  - `@RequestBody` 누락 시 JSON 값이 DTO에 바인딩되지 않는 문제 재확인
+
+### 오늘 배운 것
+
+- `mappedBy`에는 DB 컬럼명이 아니라 상대 엔티티의 필드명을 적는다.
+  - 예: `mappedBy = "member"`, `mappedBy = "assetItem"`
+- `@JoinColumn(name = "...")`은 실제 DB FK 컬럼명을 지정한다.
+- Entity는 객체 관계를 가진다.
+  - `Reservation.member`
+  - `Reservation.assetItem`
+- DTO는 요청에 필요한 id를 가진다.
+  - `memberId`
+  - `assetItemId`
+- 예약 생성은 아직 예약 id가 없으므로 `reservationId`를 Request로 받지 않는다.
+- 예약 생성은 `new Reservation(member, assetItem)` 후 `save()` 하는 흐름이다.
+- 예약은 Loan과 역할이 다르다.
+  - Loan은 실제 대여 기록
+  - Reservation은 대여 중인 자산에 대한 대기 기록
+- `findByMemberId()` 같은 Spring Data JPA 쿼리 메서드는 메서드 이름으로 where 조건을 만든다.
+- 회원 1명은 여러 예약을 가질 수 있으므로 `Optional<Reservation>`이 아니라 `List<Reservation>`으로 조회해야 한다.
+- 조회 결과가 없는 경우에는 예외보다 빈 리스트 `[]` 반환이 자연스러울 수 있다.
+
+### 부족한 점 / 추후 학습 필요
+
+- `mappedBy`와 `@JoinColumn`의 차이를 반복해서 복습할 필요가 있다.
+- 생성 API와 조회 API 흐름을 헷갈리는 경우가 있다.
+  - 생성: `new + save`
+  - 조회: `findById`, `findAll`, `findBy...`
+- Request DTO에 어떤 id가 들어가야 하는지 아직 설계 초반에 헷갈린다.
+- Controller 메서드명, Service 메서드명 컨벤션을 더 정리해야 한다.
+- 전체 조회와 회원별 조회의 URL 설계를 더 일관되게 다듬을 필요가 있다.
+- 현재 Reservation은 예약 생성/조회까지만 구현되어 있고, 예약 취소와 예약 완료 처리는 아직 남아 있다.
+- Loan/Reservation 조회 시 Lazy 로딩과 N+1 문제가 발생할 수 있으므로 추후 fetch join 또는 DTO 조회 방식으로 개선해야 한다.
