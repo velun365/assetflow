@@ -1,12 +1,10 @@
 package com.assetflow.loan.controller;
 
-import com.assetflow.loan.Loan;
 import com.assetflow.loan.dto.*;
 import com.assetflow.loan.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -14,7 +12,6 @@ import java.util.List;
 @RequestMapping("/api/loans")
 public class LoanController {
     private final LoanService loanService;
-
 
     @PostMapping
     public LoanCreateResponse loanCreate(@RequestBody LoanCreateRequest request) {

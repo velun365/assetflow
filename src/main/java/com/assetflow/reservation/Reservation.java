@@ -47,4 +47,16 @@ public class Reservation {
         this.reservationStatus = ReservationStatus.WAITING;
         reservedAt = LocalDate.now();
     }
+
+    public void cancel() {
+        this.reservationStatus = ReservationStatus.CANCELED;
+    }
+
+    public void ready() {
+        this.reservationStatus = ReservationStatus.READY;
+    }
+
+    public void completed() {
+        this.reservationStatus = ReservationStatus.COMPLETED;
+    }
 }

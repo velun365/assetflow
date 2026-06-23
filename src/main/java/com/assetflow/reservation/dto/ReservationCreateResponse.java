@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class ReservationCreateResponse {
     private Long id;
     private Long memberId;
-    private Long assertItem;
+    private Long assetItem;
     private ReservationStatus reservationStatus;
     private LocalDate reservedAt;
 }

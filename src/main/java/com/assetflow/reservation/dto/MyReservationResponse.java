@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class MyReservationResponse {
     private Long id;
-    private Long assertItem;
+    private Long assetItem;
     private ReservationStatus reservationStatus;
     private LocalDate reservedAt;
 

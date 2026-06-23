@@ -20,7 +20,7 @@ public class AssetController {
         return assetService.createAsset(request);
     }
 
-    @DeleteMapping("/delete/{assetId}")
+    @DeleteMapping("/{assetId}")
     public ResponseEntity<Void> assetDelete(@PathVariable("assetId") Long assetId ) {
         assetService.assetDelete(assetId);
         return ResponseEntity.noContent().build();

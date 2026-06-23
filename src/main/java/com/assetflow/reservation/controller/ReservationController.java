@@ -6,6 +6,8 @@ import com.assetflow.reservation.dto.ReservationCreateResponse;
 import com.assetflow.reservation.dto.ReservationResponse;
 import com.assetflow.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,5 +32,13 @@ public class ReservationController {
     public List<MyReservationResponse> findByMyReservations(@PathVariable("memberId") Long memberId) {
         return reservationService.findByMyReservations(memberId);
     }
+
+    @PostMapping("/{reservationId}/cancel")
+    public ResponseEntity<Void> cancelReservation(@PathVariable("reservationId") Long reservationId) {
+        reservationService.cancelReservation(reservationId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 }

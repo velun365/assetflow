@@ -12,6 +12,7 @@ import com.assetflow.reservation.dto.ReservationCreateResponse;
 import com.assetflow.reservation.dto.ReservationResponse;
 import com.assetflow.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,5 +78,15 @@ public class ReservationService {
                     .toList();
 
     }
+
+    @Transactional
+    public void cancelReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalStateException("존재 하지 않는 예약입니다."));
+
+        reservation.cancel();
+
+    }
+
 
 }

@@ -1,11 +1,11 @@
 package com.assetflow.asset.dto;
 
 import com.assetflow.asset.AssetType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class AssetCreateRequest {
     private String name;
     private String explanation;

@@ -48,8 +48,13 @@ public class Loan {
             returnDate = LocalDate.now();
             this.loanStatus = LoanStatus.RETURNED;
         }
-
     }
+
+    public void markOverdue() {
+        this.loanStatus = LoanStatus.OVERDUE;
+    }
+
+
 
 
 

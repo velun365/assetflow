@@ -311,3 +311,32 @@
 - 전체 조회와 회원별 조회의 URL 설계를 더 일관되게 다듬을 필요가 있다.
 - 현재 Reservation은 예약 생성/조회까지만 구현되어 있고, 예약 취소와 예약 완료 처리는 아직 남아 있다.
 - Loan/Reservation 조회 시 Lazy 로딩과 N+1 문제가 발생할 수 있으므로 추후 fetch join 또는 DTO 조회 방식으로 개선해야 한다.
+
+## Day 8 - 예약 우선권 및 연체 처리 구현
+
+### 완료
+- 반납 시 예약 대기자가 있는 경우 첫 번째 예약자를 READY 상태로 변경
+- 예약자가 있는 자산 품목은 READY 예약자만 대여 가능하도록 검증
+- 예약자가 실제 대여하면 ReservationStatus를 COMPLETED로 변경
+- 예약 순서 보장을 위해 reservedAt 오름차순 조회 적용
+- Loan 연체 처리 로직 구현
+  - RENTED 상태이고 dueDate가 지난 대여를 OVERDUE로 변경
+- Spring Scheduler 설정
+  - 매일 정해진 시간에 연체 상태 갱신 가능하도록 구성
+
+### 오늘 배운 것
+- LoanStatus는 대여 기록 상태, AssetItemStatus는 물건 상태, ReservationStatus는 예약 상태를 의미한다.
+- ReservationStatus.COMPLETED는 대여 완료가 아니라 예약이 실제 대여로 이어져 종료된 상태다.
+- 예약 우선권은 AssetItemStatus가 아니라 ReservationStatus.READY로 관리할 수 있다.
+- Spring Data JPA 메서드 이름에 OrderByReservedAtAsc를 붙이면 예약 순서를 보장할 수 있다.
+- setter 대신 markOverdue(), completed(), ready() 같은 도메인 메서드로 상태를 변경하는 것이 더 자연스럽다.
+
+### 부족한 점 / 추후 개선 필요
+
+- 예약 우선권 로직은 구현했지만, `get(0)`에 의존하므로 조회 정렬 조건이 반드시 유지되어야 한다.
+- READY 상태 예약자가 일정 시간 안에 대여하지 않을 경우 만료 처리하는 정책이 아직 없다.
+- 연체 처리는 Scheduler로 구현했지만, 실제 동작 테스트와 로그 확인이 필요하다.
+- `@Scheduled` cron 표현식과 실행 주기를 README에 명확히 기록할 필요가 있다.
+- 예약/대여/반납/연체 흐름에 대한 Service 테스트가 아직 부족하다.
+- 현재 예외 처리는 `IllegalStateException` 중심이라 추후 `ErrorCode`, `CustomException` 구조로 개선할 필요가 있다.
+- 동시 대여 요청 상황에서 중복 대여가 발생할 수 있으므로 이후 동시성 제어가 필요하다.
