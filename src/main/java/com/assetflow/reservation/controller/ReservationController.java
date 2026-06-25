@@ -5,9 +5,9 @@ import com.assetflow.reservation.dto.ReservationCreateRequest;
 import com.assetflow.reservation.dto.ReservationCreateResponse;
 import com.assetflow.reservation.dto.ReservationResponse;
 import com.assetflow.reservation.service.ReservationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ReservationCreateResponse createReservation(@RequestBody ReservationCreateRequest request) {
+    public ReservationCreateResponse createReservation(@Valid @RequestBody ReservationCreateRequest request) {
         return reservationService.createReservation(request);
     }
 

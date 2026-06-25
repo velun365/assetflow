@@ -34,6 +34,9 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private List<Reservation> reservations = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member")
+    private List<Loan> loans = new ArrayList<>();
+
 
     public void changeDepartment(Department department) {
         this.department = department;

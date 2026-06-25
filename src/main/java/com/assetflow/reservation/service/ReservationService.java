@@ -3,16 +3,18 @@ package com.assetflow.reservation.service;
 import com.assetflow.asset.AssetItem;
 import com.assetflow.asset.AssetItemStatus;
 import com.assetflow.asset.repository.AssetItemRepository;
+import com.assetflow.loan.LoanStatus;
+import com.assetflow.loan.repository.LoanRepository;
 import com.assetflow.member.Member;
 import com.assetflow.member.repository.MemberRepository;
 import com.assetflow.reservation.Reservation;
+import com.assetflow.reservation.ReservationStatus;
 import com.assetflow.reservation.dto.MyReservationResponse;
 import com.assetflow.reservation.dto.ReservationCreateRequest;
 import com.assetflow.reservation.dto.ReservationCreateResponse;
 import com.assetflow.reservation.dto.ReservationResponse;
 import com.assetflow.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
     private final AssetItemRepository assetItemRepository;
+    private final LoanRepository loanRepository;
 
     @Transactional
     public ReservationCreateResponse createReservation(ReservationCreateRequest request) {
@@ -35,6 +38,16 @@ public class ReservationService {
                 .orElseThrow(() -> new IllegalStateException("해당 회원은 존재하지 않는 회원입니다."));
 
         if (assetItem.getAssetItemStatus() == AssetItemStatus.RENTED) {
+            boolean alreadyBorrowed = isAlreadyBorrowed(member, assetItem);
+            if (alreadyBorrowed) {
+                throw new IllegalStateException("본인이 대여 중인 자산은 예약할 수 없습니다.");
+            }
+
+            boolean duplicateReservation = hasActiveReservation(member, assetItem);
+
+            if (duplicateReservation) {
+                throw new IllegalStateException("중복 예약은 불가 합니다.");
+            }
             Reservation reservation = new Reservation(
                     member, assetItem
             );
@@ -49,6 +62,26 @@ public class ReservationService {
         }
         throw new IllegalStateException("대여중인 자산만 예약 할 수 있습니다.");
 
+    }
+
+    private boolean hasActiveReservation(Member member, AssetItem assetItem) {
+        boolean waiting = reservationRepository.existsByMemberIdAndAssetItemIdAndReservationStatus(
+                member.getId(), assetItem.getId(), ReservationStatus.WAITING
+        );
+
+        boolean ready = reservationRepository.existsByMemberIdAndAssetItemIdAndReservationStatus(
+                member.getId(), assetItem.getId(), ReservationStatus.READY
+        );
+
+        return waiting || ready;
+    }
+
+    private boolean isAlreadyBorrowed(Member member, AssetItem assetItem) {
+        return loanRepository.existsByMemberIdAndAssetItemIdAndLoanStatus(
+                member.getId(),
+                assetItem.getId(),
+                LoanStatus.RENTED
+        );
     }
 
     public List<ReservationResponse> getReservations() {

@@ -9,10 +9,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class AssetItemCreateRequest {
+    @NotBlank
     private String serialNumber;
     @NotBlank
     private String location;
-    @NotBlank
+    @NotNull
     private Long assetId;
 
 }

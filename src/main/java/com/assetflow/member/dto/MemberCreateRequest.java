@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 public class MemberCreateRequest {
     @NotBlank
     private String loginId;
-    @Email
     @NotBlank
+    @Email
     private String email;
     @NotBlank(message = "비밀번호를 입력하세요")
     @Size(min = 8, max = 16, message = "비밀번호는 8~16자로 입력하세요.")

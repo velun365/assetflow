@@ -1,8 +1,5 @@
 package com.assetflow.loan.dto;
 
-import com.assetflow.asset.AssetItem;
-import com.assetflow.loan.LoanStatus;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class LoanCreateRequest {
-    @NotBlank
+    @NotNull
     private Long memberId;
-    @NotBlank
+    @NotNull
     private Long assetItemId;
 
 }

@@ -340,3 +340,72 @@
 - 예약/대여/반납/연체 흐름에 대한 Service 테스트가 아직 부족하다.
 - 현재 예외 처리는 `IllegalStateException` 중심이라 추후 `ErrorCode`, `CustomException` 구조로 개선할 필요가 있다.
 - 동시 대여 요청 상황에서 중복 대여가 발생할 수 있으므로 이후 동시성 제어가 필요하다.
+
+## Day 9 - Bean Validation 적용 시작
+
+### 완료
+- 주요 생성 요청 DTO에 Bean Validation 적용 시작
+  - MemberCreateRequest
+  - AssetCreateRequest
+  - AssetItemCreateRequest
+  - CategoryCreateRequest
+  - LoanCreateRequest
+  - ReservationCreateRequest
+- Controller의 RequestBody 파라미터에 @Valid 적용 시작
+- 문자열 필드에는 @NotBlank, id/enum 필드에는 @NotNull을 적용하는 기준 정리
+- AssetType 같은 enum 필드는 @NotNull로 누락 여부를 검증할 수 있음을 확인
+- DELETE PathVariable에는 @Valid를 붙이지 않는 방향으로 정리
+
+### 오늘 배운 것
+- @Valid는 주로 Controller에서 Request DTO 검증을 실행할 때 사용한다.
+- 검증 조건은 Entity보다 Request DTO에 우선 적용하는 것이 현재 구조에 적합하다.
+- Repository에는 Bean Validation을 적용하지 않는다.
+- String 값은 @NotNull보다 @NotBlank가 더 적합하다.
+- Long id, Enum 값은 @NotNull을 사용한다.
+- 잘못된 enum 문자열은 @NotNull 검증이 아니라 JSON 역직렬화 단계에서 예외가 발생할 수 있다.
+
+### 부족한 점 / 추후 개선 필요
+- 모든 Controller에 @Valid가 빠짐없이 적용됐는지 재확인 필요
+- Request DTO별 검증 어노테이션이 적절한지 재검토 필요
+- Validation 실패 시 기본 에러 응답이 반환되므로 MethodArgumentNotValidException 예외 처리가 필요
+- enum 변환 실패(HttpMessageNotReadableException) 예외 처리도 추후 필요
+- Postman으로 검증 실패 케이스 테스트 필요
+- LoanListRequest처럼 실제 사용 여부가 불명확한 DTO는 정리 필요
+
+## Day 10 - Bean Validation 및 예약 예외 정책 보완
+
+### 완료
+- 주요 Request DTO에 Bean Validation 적용
+  - MemberCreateRequest
+  - AssetCreateRequest
+  - AssetItemCreateRequest
+  - CategoryCreateRequest
+  - LoanCreateRequest
+  - ReservationCreateRequest
+- Controller의 생성 요청 API에 `@Valid @RequestBody` 적용
+- GlobalExceptionHandler 통합
+  - IllegalStateException 처리
+  - MethodArgumentNotValidException 처리
+- Validation 실패 시 `VALIDATION_ERROR` 응답 반환 확인
+- 본인이 대여 중인 자산은 예약할 수 없도록 검증 추가
+- 동일 회원이 같은 자산품목에 WAITING/READY 예약을 중복 생성하지 못하도록 검증 추가
+- Postman으로 예약 예외 시나리오 검증
+  - 본인 대여 중 예약 실패
+  - 중복 예약 실패
+  - 예약 우선권 정상 동작 확인
+
+### 배운 점
+- `@Valid`는 Controller 진입 전에 Request DTO를 검증한다.
+- String 필드는 `@NotBlank`, Long/Enum 필드는 `@NotNull`을 사용한다.
+- Validation 실패는 `MethodArgumentNotValidException`으로 처리할 수 있다.
+- `existsBy...`는 조건에 맞는 데이터 존재 여부를 boolean으로 확인할 때 사용한다.
+- WAITING/READY 예약은 아직 살아있는 예약이므로 중복 예약 방지 대상이다.
+
+### 부족한 점 / 추후 개선
+- Validation 메시지가 아직 DTO에 직접 작성되어 있어 추후 messages.properties 분리 가능
+- ErrorCode enum / CustomException 구조는 아직 미적용
+- Service 테스트 코드가 아직 부족함
+- 예약/대여/반납/연체 시나리오를 테스트 코드로 고정해야 함
+- Querydsl 관리자 검색 기능 미구현
+- JWT 인증/권한 처리 미구현
+- README에 오늘 구현한 비즈니스 정책 정리 필요
