@@ -2,6 +2,7 @@ package com.assetflow.loan.controller;
 
 import com.assetflow.loan.dto.*;
 import com.assetflow.loan.service.LoanService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +15,12 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping
-    public LoanCreateResponse loanCreate(@RequestBody LoanCreateRequest request) {
+    public LoanCreateResponse createLoan(@Valid @RequestBody LoanCreateRequest request) {
         return loanService.createLoan(request);
     }
 
     @PostMapping("/{loanId}/return")
-    public LoanReturnResponse loanReturn(@PathVariable("loanId") Long loanId) {
+    public LoanReturnResponse returnLoan(@PathVariable("loanId") Long loanId) {
         return loanService.returnLoan(loanId);
     }
 

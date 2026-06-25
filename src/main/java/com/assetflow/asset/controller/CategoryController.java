@@ -4,6 +4,7 @@ import com.assetflow.asset.dto.CategoryCreateRequest;
 import com.assetflow.asset.dto.CategoryCreateResponse;
 import com.assetflow.asset.repository.CategoryRepository;
 import com.assetflow.asset.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.sql.Delete;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping("/api/categories")
-    public CategoryCreateResponse createCategory(@RequestBody CategoryCreateRequest request) {
+    public CategoryCreateResponse createCategory(@Valid @RequestBody CategoryCreateRequest request) {
         return categoryService.categoryCreate(request);
     }
 

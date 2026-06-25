@@ -3,6 +3,7 @@ package com.assetflow.asset.controller;
 import com.assetflow.asset.dto.AssetItemCreateRequest;
 import com.assetflow.asset.dto.AssetItemCreateResponse;
 import com.assetflow.asset.service.AssetItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +17,7 @@ public class AssetItemController {
     private final AssetItemService assetItemService;
 
     @PostMapping
-    public AssetItemCreateResponse AssetItemCreate(@RequestBody AssetItemCreateRequest request) {
+    public AssetItemCreateResponse createAssetItem(@Valid @RequestBody AssetItemCreateRequest request) {
        return assetItemService.createAssetItem(request);
     }
 }
