@@ -409,3 +409,33 @@
 - Querydsl 관리자 검색 기능 미구현
 - JWT 인증/권한 처리 미구현
 - README에 오늘 구현한 비즈니스 정책 정리 필요
+
+## Day 11 - Service 테스트 코드 작성
+
+### 완료
+- LoanServiceTest 작성
+  - 대여 생성 테스트
+  - 반납 테스트
+  - 전체 대여 조회 테스트
+  - 회원별 대여 조회 테스트
+- ReservationServiceTest 작성
+  - 예약 생성 성공 테스트
+  - 본인이 대여 중인 자산 예약 실패 테스트
+  - 중복 예약 실패 테스트
+  - 대여 중이 아닌 자산 예약 실패 테스트
+  - 전체 예약 조회 테스트
+  - 회원별 예약 조회 테스트
+  - 예약 취소 테스트
+  - 존재하지 않는 예약 취소 실패 테스트
+- 테스트 데이터 준비 메서드 작성
+- Given / When / Then 흐름 학습
+- AssertJ 기본 검증 학습
+- `assertThatThrownBy()`를 사용한 예외 테스트 학습
+- Request DTO 테스트 생성을 위해 `@AllArgsConstructor` 적용
+
+### 부족한 점 / 추후 개선
+- 테스트 데이터 생성 코드가 중복되어 추후 TestFixture로 분리 필요
+- 테스트 메서드명이 아직 더 명확해질 필요 있음
+- 연체 Scheduler 테스트는 아직 미작성
+- Controller 테스트는 아직 미작성
+- Querydsl, JWT, 배포 작업이 남아 있음
