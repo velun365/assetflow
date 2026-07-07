@@ -3,8 +3,13 @@ package com.assetflow.member.service;
 import com.assetflow.member.Member;
 import com.assetflow.member.dto.MemberCreateRequest;
 import com.assetflow.member.dto.MemberCreateResponse;
+import com.assetflow.member.dto.MemberSearchCondition;
+import com.assetflow.member.dto.MemberSearchResponse;
 import com.assetflow.member.repository.MemberRepository;
+import com.assetflow.member.repository.MemberRepositoryImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +49,10 @@ public class MemberService {
     public Member findOne(String loginId) {
         return memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. loginId=" + loginId));
+    }
+
+    public Page<MemberSearchResponse> searchComplex(MemberSearchCondition condition, Pageable pageable) {
+        return memberRepository.searchComplex(condition, pageable);
     }
 
 

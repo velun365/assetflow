@@ -439,3 +439,41 @@
 - 연체 Scheduler 테스트는 아직 미작성
 - Controller 테스트는 아직 미작성
 - Querydsl, JWT, 배포 작업이 남아 있음
+
+## Day 12 - Querydsl 회원 검색 기능 적용
+
+### 완료
+- Querydsl 의존성 및 설정 추가
+- Q타입 생성 확인
+- `JPAQueryFactory` Bean 등록
+- Member 검색 조건 DTO 작성
+  - loginId
+  - name
+  - status
+  - departmentName
+- Member 검색 응답 DTO 작성
+- `MemberRepositoryCustom`, `MemberRepositoryImpl` 구조 적용
+- Querydsl을 사용한 회원 검색 구현
+  - loginId 조건 검색
+  - name 조건 검색
+  - status 조건 검색
+  - departmentName 조건 검색
+- 회원 검색 API에 페이징 적용
+- Postman으로 검색 및 페이징 결과 확인
+
+### 오늘 배운 것
+- Q타입은 엔티티가 아니라 Querydsl에서 쿼리를 작성하기 위한 메타 모델이다.
+- `JPAQueryFactory`는 Querydsl 쿼리를 만들고 실행하기 위한 핵심 객체다.
+- `@Configuration`과 `@Bean`을 사용해 `JPAQueryFactory`를 스프링 빈으로 등록할 수 있다.
+- `MemberSearchCondition`은 검색 입력값을 담는 DTO이고, `MemberSearchResponse`는 검색 결과를 반환하는 DTO다.
+- `leftJoin(member.department, department)`는 Member와 Department를 연결해서 부서명을 조회하기 위해 사용한다.
+- `where()`에서 null 조건은 무시되므로 동적 검색 조건을 만들 수 있다.
+- `hasText()`는 문자열 조건이 있을 때만 검색 조건을 추가하기 위해 사용한다.
+- enum 조건은 `hasText()`가 아니라 `status != null`로 검사해야 한다.
+
+### 부족한 점 / 추후 개선
+- 현재 Querydsl 검색은 Member에만 적용되어 있다.
+- Asset, Loan, Reservation 검색 API에도 Querydsl 적용 필요
+- 검색 메서드 이름을 `searchComplex`에서 더 명확한 이름으로 리팩토링 필요
+- Department 테스트 데이터 추가 후 departmentName 검색 검증 필요
+- Querydsl Repository 테스트 코드 작성 필요
