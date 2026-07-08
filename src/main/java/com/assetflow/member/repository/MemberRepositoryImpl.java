@@ -67,6 +67,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                         departmentNameEq(condition.getDepartmentName())
 
                 )
+                .orderBy(member.id.desc(), member.name.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

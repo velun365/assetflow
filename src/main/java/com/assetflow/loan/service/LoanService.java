@@ -13,6 +13,8 @@ import com.assetflow.reservation.Reservation;
 import com.assetflow.reservation.ReservationStatus;
 import com.assetflow.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,4 +148,7 @@ public class LoanService {
         overLoans.forEach(loan -> loan.markOverdue());
     }
 
+    public Page<LoanSearchResponse> searchLoan(LoanSearchCondition condition, Pageable pageable) {
+        return loanRepository.searchLoan(condition, pageable);
+    }
 }

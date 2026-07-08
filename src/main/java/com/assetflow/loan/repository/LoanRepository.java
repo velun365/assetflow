@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import static com.assetflow.loan.LoanStatus.*;
 
-public interface LoanRepository extends JpaRepository<Loan, Long> {
+public interface LoanRepository extends JpaRepository<Loan, Long>, LoanRepositoryCustom {
     List<Loan> findByMemberId(Long memberId);
 
     List<Loan> findByLoanStatusAndDueDateBeforeAndReturnDateIsNull(

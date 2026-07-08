@@ -4,9 +4,13 @@ import com.assetflow.asset.Asset;
 import com.assetflow.asset.Category;
 import com.assetflow.asset.dto.AssetCreateRequest;
 import com.assetflow.asset.dto.AssetCreateResponse;
+import com.assetflow.asset.dto.AssetSearchCondition;
+import com.assetflow.asset.dto.AssetSearchResponse;
 import com.assetflow.asset.repository.AssetRepository;
 import com.assetflow.asset.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +28,9 @@ public class AssetService {
         Asset asset = new Asset(
                 request.getName(),
                 request.getExplanation(),
-                request.getAssetType()
+                request.getAssetType(),
+                category
+
         );
         asset.changeCategory(category);
         assetRepository.save(asset);
@@ -44,5 +50,9 @@ public class AssetService {
                 .orElseThrow(() -> new IllegalArgumentException("존재 하지않는 자산입니다."));
 
         assetRepository.delete(asset);
+    }
+
+    public Page<AssetSearchResponse> searchAssets(AssetSearchCondition condition, Pageable pageable) {
+        return assetRepository.searchAssets(condition, pageable);
     }
 }

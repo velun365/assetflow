@@ -4,6 +4,8 @@ import com.assetflow.loan.dto.*;
 import com.assetflow.loan.service.LoanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +35,11 @@ public class LoanController {
     @GetMapping("/members/{memberId}")
     public List<MyLoanListResponse> loanListByMember(@PathVariable Long memberId) {
        return loanService.findLoansByMember(memberId);
+    }
+
+    @GetMapping("/search")
+    public Page<LoanSearchResponse> searchLoan(LoanSearchCondition condition, Pageable pageable) {
+        return loanService.searchLoan(condition, pageable);
     }
 
 }

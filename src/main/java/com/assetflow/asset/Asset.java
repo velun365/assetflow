@@ -33,10 +33,11 @@ public class Asset {
         category.getAssets().add(this);
     }
 
-    public Asset(String name, String explanation, AssetType assetType) {
+    public Asset(String name, String explanation, AssetType assetType, Category category) {
         this.name = name;
         this.explanation = explanation;
         this.assetType = assetType;
+        changeCategory(category);
     }
 
     //    @CreatedDate

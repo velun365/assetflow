@@ -14,7 +14,11 @@ import com.assetflow.reservation.dto.ReservationCreateRequest;
 import com.assetflow.reservation.dto.ReservationCreateResponse;
 import com.assetflow.reservation.dto.ReservationResponse;
 import com.assetflow.reservation.repository.ReservationRepository;
+import com.assetflow.reservation.repository.ReservationSearchCondition;
+import com.assetflow.reservation.repository.ReservationSearchResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,7 +112,7 @@ public class ReservationService {
                                 reservation.getReservationStatus(),
                                 reservation.getReservedAt()
                         ))
-                    .toList();
+                .toList();
 
     }
 
@@ -121,5 +125,7 @@ public class ReservationService {
 
     }
 
-
+    public Page<ReservationSearchResponse> searchReservation(ReservationSearchCondition condition, Pageable pageable) {
+        return reservationRepository.searchReservation(condition, pageable);
+    }
 }

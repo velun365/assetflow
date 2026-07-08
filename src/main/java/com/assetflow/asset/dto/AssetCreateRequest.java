@@ -12,10 +12,8 @@ public class AssetCreateRequest {
     @NotBlank
     private String name;
     private String explanation;
-
     @NotNull
     private AssetType assetType;
-
     @NotNull
     private Long categoryId;
 }
