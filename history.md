@@ -477,3 +477,46 @@
 - 검색 메서드 이름을 `searchComplex`에서 더 명확한 이름으로 리팩토링 필요
 - Department 테스트 데이터 추가 후 departmentName 검색 검증 필요
 - Querydsl Repository 테스트 코드 작성 필요
+
+## Day 13 - Querydsl 검색 기능 확장
+
+### 완료
+- Asset 검색 API에 Querydsl 적용
+  - 자산명 검색
+  - 자산 유형 검색
+  - 카테고리명 검색
+  - 페이징 적용
+- Loan 검색 API에 Querydsl 적용
+  - 회원명 검색
+  - 자산품목 id 검색
+  - 대여 상태 검색
+  - 대여일 기간 검색
+  - 페이징 및 정렬 적용
+- Reservation 검색 API에 Querydsl 적용 시작
+  - 회원명 검색
+  - 자산명 검색
+  - 예약 상태 검색
+  - 예약일 기간 검색
+- 검색 응답 DTO 정리
+  - Entity를 직접 반환하지 않고 필요한 값만 DTO로 반환
+- InitTestData에 테스트용 Category, Asset, AssetItem, Loan, Reservation 데이터 추가
+- Postman으로 Asset/Loan 검색 및 페이징 동작 확인
+
+### 오늘 배운 것
+- 검색 조건 DTO와 응답 DTO의 역할이 다르다.
+- Condition은 사용자가 입력한 검색 조건이고, Response는 화면에 보여줄 결과다.
+- Entity는 응답 DTO에 직접 넣지 않고 필요한 값만 꺼내는 것이 안전하다.
+- Enum은 단순 값이므로 응답 DTO에 포함해도 괜찮다.
+- 연관된 엔티티 값을 조회하려면 join이 필요하다.
+- `Loan -> AssetItem -> Asset`처럼 여러 단계의 연관관계도 Querydsl join으로 조회할 수 있다.
+- countQuery는 DTO 조회가 아니라 전체 개수 조회이므로 `select(count())`를 사용한다.
+- 기간 검색은 From에는 `goe`, To에는 `loe`를 사용한다.
+- countQuery에는 정렬을 넣지 않는다.
+
+### 부족한 점 / 추후 개선
+- Reservation 검색 API 최종 Postman 테스트 필요
+- 검색 메서드 이름을 `searchComplex`에서 도메인별 명확한 이름으로 리팩토링 필요
+- 검색 조건 일부는 정확 검색(`eq`) 기준이라 추후 부분 검색(`containsIgnoreCase`) 적용 검토
+- Querydsl Repository 테스트 코드 작성 필요
+- Swagger 문서화 필요
+- JWT 인증/권한 처리 미구현
