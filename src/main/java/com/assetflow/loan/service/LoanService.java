@@ -131,7 +131,7 @@ public class LoanService {
                 .map(loan -> new MyLoanListResponse(
                         loan.getId(),
                         loan.getLoanStatus(),
-                        loan.getMember().getId(),
+                        loan.getAssetItem().getId(),
                         loan.getLoanDate(),
                         loan.getDueDate(),
                         loan.getReturnDate()

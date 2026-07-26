@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 public class MemberCreateResponse {
+    private Long memberId;
     private String loginId;
     private String email;
     private String name;

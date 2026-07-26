@@ -1,6 +1,5 @@
 package com.assetflow.asset.controller;
 
-import com.assetflow.asset.Asset;
 import com.assetflow.asset.dto.AssetCreateRequest;
 import com.assetflow.asset.dto.AssetCreateResponse;
 import com.assetflow.asset.dto.AssetSearchCondition;
@@ -35,3 +34,4 @@ public class AssetController {
         return assetService.searchAssets(condition, pageable);
     }
 }
+    

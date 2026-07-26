@@ -25,7 +25,7 @@ public class MemberController {
     }
 
     @GetMapping("/search")
-    public Page<MemberSearchResponse> searchComplex(MemberSearchCondition condition, Pageable pageable) {
-        return memberService.searchComplex(condition, pageable);
+    public Page<MemberSearchResponse> searchMembers(MemberSearchCondition condition, Pageable pageable) {
+        return memberService.searchMembers(condition, pageable);
     }
 }

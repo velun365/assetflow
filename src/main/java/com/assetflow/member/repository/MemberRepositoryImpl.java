@@ -1,6 +1,5 @@
 package com.assetflow.member.repository;
 
-import com.assetflow.member.Member;
 import com.assetflow.member.MemberStatus;
 import com.assetflow.member.dto.MemberSearchCondition;
 import com.assetflow.member.dto.MemberSearchResponse;
@@ -30,6 +29,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         return queryFactory
                 .select(Projections.constructor(
                         MemberSearchResponse.class,
+                        member.id,
                         member.loginId,
                         member.name,
                         member.status,
@@ -53,6 +53,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         List<MemberSearchResponse> content = queryFactory
                 .select(Projections.constructor(
                         MemberSearchResponse.class,
+                        member.id,
                         member.loginId,
                         member.name,
                         member.status,

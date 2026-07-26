@@ -24,14 +24,15 @@ public class MemberService {
 
     @Transactional
     public MemberCreateResponse join(MemberCreateRequest request) {
-        Member member = new Member(request.getLoginId(),
+        Member member = new Member(
+                request.getLoginId(),
                 request.getEmail(),
                 request.getPassword(),
                 request.getName());
         validateDuplicateLoginId(member.getLoginId());
         memberRepository.save(member);
         return new MemberCreateResponse(
-                member.getLoginId(), member.getEmail(), member.getName()
+                member.getId(),member.getLoginId(), member.getEmail(), member.getName()
         );
     }
 
@@ -51,7 +52,7 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. loginId=" + loginId));
     }
 
-    public Page<MemberSearchResponse> searchComplex(MemberSearchCondition condition, Pageable pageable) {
+    public Page<MemberSearchResponse> searchMembers(MemberSearchCondition condition, Pageable pageable) {
         return memberRepository.searchComplex(condition, pageable);
     }
 

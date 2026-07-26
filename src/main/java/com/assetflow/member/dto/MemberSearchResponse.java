@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MemberSearchResponse {
+    private Long memberId;
     private String loginId;
     private String name;
     private MemberStatus status;
