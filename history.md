@@ -4,14 +4,14 @@
 
 ### 완료
 
-* Spring Boot 프로젝트 생성
-* MySQL 연동
-* GitHub 저장소 생성 및 연결
+- Spring Boot 프로젝트 생성
+- MySQL 연동
+- GitHub 저장소 생성 및 연결
 
 ### 목표
 
-* 프로젝트 구조 설계
-* 도메인 정의
+- 프로젝트 구조 설계
+- 도메인 정의
 
 ---
 
@@ -19,11 +19,11 @@
 
 ### 완료
 
-* Member 엔티티 초안 작성
-* Department 엔티티 초안 작성
-* Asset 엔티티 초안 작성
-* Category 엔티티 초안 작성
-* AssetItem 엔티티 초안 작성
+- Member 엔티티 초안 작성
+- Department 엔티티 초안 작성
+- Asset 엔티티 초안 작성
+- Category 엔티티 초안 작성
+- AssetItem 엔티티 초안 작성
 
 ### 설계 고민
 
@@ -35,15 +35,16 @@
 
 예시
 
-* Asset : MacBook Pro 14인치
-* AssetItem : MBP-001
-* AssetItem : MBP-002
+- Asset : MacBook Pro 14인치
+- AssetItem : MBP-001
+- AssetItem : MBP-002
 
 ---
 
 ## Day 3 - ERD 정리 및 MemberService 구현
 
 ### 완료
+
 - ERD 초안 정리
 - FK 위치 정리
   - Department 1:N Member
@@ -63,6 +64,7 @@
   - 중복 회원 예외 테스트
 
 ### 오늘 배운 것
+
 - `@ManyToOne` 쪽이 FK를 가진다.
 - `@JoinColumn`은 FK 컬럼명을 지정할 때 사용한다.
 - `@Column`은 일반 컬럼에 사용한다.
@@ -76,14 +78,14 @@
 
 ### 완료
 
-* Spring Boot 프로젝트 생성
-* MySQL 연동
-* GitHub 저장소 생성 및 연결
+- Spring Boot 프로젝트 생성
+- MySQL 연동
+- GitHub 저장소 생성 및 연결
 
 ### 목표
 
-* 프로젝트 구조 설계
-* 도메인 정의
+- 프로젝트 구조 설계
+- 도메인 정의
 
 ---
 
@@ -91,11 +93,11 @@
 
 ### 완료
 
-* Member 엔티티 초안 작성
-* Department 엔티티 초안 작성
-* Asset 엔티티 초안 작성
-* Category 엔티티 초안 작성
-* AssetItem 엔티티 초안 작성
+- Member 엔티티 초안 작성
+- Department 엔티티 초안 작성
+- Asset 엔티티 초안 작성
+- Category 엔티티 초안 작성
+- AssetItem 엔티티 초안 작성
 
 ### 설계 고민
 
@@ -107,15 +109,16 @@
 
 예시
 
-* Asset : MacBook Pro 14인치
-* AssetItem : MBP-001
-* AssetItem : MBP-002
+- Asset : MacBook Pro 14인치
+- AssetItem : MBP-001
+- AssetItem : MBP-002
 
 ---
 
 ## Day 3 - ERD 정리 및 MemberService 구현
 
 ### 완료
+
 - ERD 초안 정리
 - FK 위치 정리
   - Department 1:N Member
@@ -135,6 +138,7 @@
   - 중복 회원 예외 테스트
 
 ### 오늘 배운 것
+
 - `@ManyToOne` 쪽이 FK를 가진다.
 - `@JoinColumn`은 FK 컬럼명을 지정할 때 사용한다.
 - `@Column`은 일반 컬럼에 사용한다.
@@ -151,7 +155,6 @@
 - 예외 처리 흐름은 이해했지만, `@ExceptionHandler`, `@RestControllerAdvice`, HTTP 상태코드 매핑은 복습이 필요하다.
 - 현재 예외 처리는 단순 구조이므로 추후 `ErrorCode`, `CustomException`, 공통 응답 포맷으로 확장할 필요가 있다.
 - 비밀번호 암호화와 Spring Security/JWT 로그인은 아직 적용하지 않았고, 추후 별도 구현이 필요하다.
-
 
 ---
 
@@ -315,6 +318,7 @@
 ## Day 8 - 예약 우선권 및 연체 처리 구현
 
 ### 완료
+
 - 반납 시 예약 대기자가 있는 경우 첫 번째 예약자를 READY 상태로 변경
 - 예약자가 있는 자산 품목은 READY 예약자만 대여 가능하도록 검증
 - 예약자가 실제 대여하면 ReservationStatus를 COMPLETED로 변경
@@ -325,6 +329,7 @@
   - 매일 정해진 시간에 연체 상태 갱신 가능하도록 구성
 
 ### 오늘 배운 것
+
 - LoanStatus는 대여 기록 상태, AssetItemStatus는 물건 상태, ReservationStatus는 예약 상태를 의미한다.
 - ReservationStatus.COMPLETED는 대여 완료가 아니라 예약이 실제 대여로 이어져 종료된 상태다.
 - 예약 우선권은 AssetItemStatus가 아니라 ReservationStatus.READY로 관리할 수 있다.
@@ -344,6 +349,7 @@
 ## Day 9 - Bean Validation 적용 시작
 
 ### 완료
+
 - 주요 생성 요청 DTO에 Bean Validation 적용 시작
   - MemberCreateRequest
   - AssetCreateRequest
@@ -357,6 +363,7 @@
 - DELETE PathVariable에는 @Valid를 붙이지 않는 방향으로 정리
 
 ### 오늘 배운 것
+
 - @Valid는 주로 Controller에서 Request DTO 검증을 실행할 때 사용한다.
 - 검증 조건은 Entity보다 Request DTO에 우선 적용하는 것이 현재 구조에 적합하다.
 - Repository에는 Bean Validation을 적용하지 않는다.
@@ -365,6 +372,7 @@
 - 잘못된 enum 문자열은 @NotNull 검증이 아니라 JSON 역직렬화 단계에서 예외가 발생할 수 있다.
 
 ### 부족한 점 / 추후 개선 필요
+
 - 모든 Controller에 @Valid가 빠짐없이 적용됐는지 재확인 필요
 - Request DTO별 검증 어노테이션이 적절한지 재검토 필요
 - Validation 실패 시 기본 에러 응답이 반환되므로 MethodArgumentNotValidException 예외 처리가 필요
@@ -375,6 +383,7 @@
 ## Day 10 - Bean Validation 및 예약 예외 정책 보완
 
 ### 완료
+
 - 주요 Request DTO에 Bean Validation 적용
   - MemberCreateRequest
   - AssetCreateRequest
@@ -395,6 +404,7 @@
   - 예약 우선권 정상 동작 확인
 
 ### 배운 점
+
 - `@Valid`는 Controller 진입 전에 Request DTO를 검증한다.
 - String 필드는 `@NotBlank`, Long/Enum 필드는 `@NotNull`을 사용한다.
 - Validation 실패는 `MethodArgumentNotValidException`으로 처리할 수 있다.
@@ -402,6 +412,7 @@
 - WAITING/READY 예약은 아직 살아있는 예약이므로 중복 예약 방지 대상이다.
 
 ### 부족한 점 / 추후 개선
+
 - Validation 메시지가 아직 DTO에 직접 작성되어 있어 추후 messages.properties 분리 가능
 - ErrorCode enum / CustomException 구조는 아직 미적용
 - Service 테스트 코드가 아직 부족함
@@ -413,6 +424,7 @@
 ## Day 11 - Service 테스트 코드 작성
 
 ### 완료
+
 - LoanServiceTest 작성
   - 대여 생성 테스트
   - 반납 테스트
@@ -434,6 +446,7 @@
 - Request DTO 테스트 생성을 위해 `@AllArgsConstructor` 적용
 
 ### 부족한 점 / 추후 개선
+
 - 테스트 데이터 생성 코드가 중복되어 추후 TestFixture로 분리 필요
 - 테스트 메서드명이 아직 더 명확해질 필요 있음
 - 연체 Scheduler 테스트는 아직 미작성
@@ -443,6 +456,7 @@
 ## Day 12 - Querydsl 회원 검색 기능 적용
 
 ### 완료
+
 - Querydsl 의존성 및 설정 추가
 - Q타입 생성 확인
 - `JPAQueryFactory` Bean 등록
@@ -462,6 +476,7 @@
 - Postman으로 검색 및 페이징 결과 확인
 
 ### 오늘 배운 것
+
 - Q타입은 엔티티가 아니라 Querydsl에서 쿼리를 작성하기 위한 메타 모델이다.
 - `JPAQueryFactory`는 Querydsl 쿼리를 만들고 실행하기 위한 핵심 객체다.
 - `@Configuration`과 `@Bean`을 사용해 `JPAQueryFactory`를 스프링 빈으로 등록할 수 있다.
@@ -472,6 +487,7 @@
 - enum 조건은 `hasText()`가 아니라 `status != null`로 검사해야 한다.
 
 ### 부족한 점 / 추후 개선
+
 - 현재 Querydsl 검색은 Member에만 적용되어 있다.
 - Asset, Loan, Reservation 검색 API에도 Querydsl 적용 필요
 - 검색 메서드 이름을 `searchComplex`에서 더 명확한 이름으로 리팩토링 필요
@@ -481,6 +497,7 @@
 ## Day 13 - Querydsl 검색 기능 확장
 
 ### 완료
+
 - Asset 검색 API에 Querydsl 적용
   - 자산명 검색
   - 자산 유형 검색
@@ -503,6 +520,7 @@
 - Postman으로 Asset/Loan 검색 및 페이징 동작 확인
 
 ### 오늘 배운 것
+
 - 검색 조건 DTO와 응답 DTO의 역할이 다르다.
 - Condition은 사용자가 입력한 검색 조건이고, Response는 화면에 보여줄 결과다.
 - Entity는 응답 DTO에 직접 넣지 않고 필요한 값만 꺼내는 것이 안전하다.
@@ -514,9 +532,42 @@
 - countQuery에는 정렬을 넣지 않는다.
 
 ### 부족한 점 / 추후 개선
+
 - Reservation 검색 API 최종 Postman 테스트 필요
 - 검색 메서드 이름을 `searchComplex`에서 도메인별 명확한 이름으로 리팩토링 필요
 - 검색 조건 일부는 정확 검색(`eq`) 기준이라 추후 부분 검색(`containsIgnoreCase`) 적용 검토
 - Querydsl Repository 테스트 코드 작성 필요
 - Swagger 문서화 필요
 - JWT 인증/권한 처리 미구현
+
+## Day 14 - React 프론트엔드 연동 및 프로젝트 구조 통합
+
+### 완료
+
+- React/Vite 프론트엔드 프로젝트 구성
+- React Router를 사용한 페이지 라우팅 적용
+- 회원 목록 조회 API 연동
+- 회원가입 폼 및 회원가입 API 연동
+- 회원 검색 조건 입력 UI 구현
+- `URLSearchParams`를 사용한 검색 쿼리스트링 생성
+- 백엔드와 프론트엔드를 하나의 Git 저장소로 통합
+  - `backend/`
+  - `frontend/`
+
+### 오늘 배운 것
+
+- React의 `Route`는 URL과 화면 컴포넌트를 연결한다.
+- `Link`는 사용자의 화면 이동에 사용하고, `useNavigate`는 로직 처리 후 이동할 때 사용한다.
+- controlled component는 input 값과 React state를 연결하는 방식이다.
+- `URLSearchParams`는 검색 조건을 URL 쿼리스트링으로 변환한다.
+- Spring의 `Page` 응답에서 실제 조회 결과는 `content`에 들어 있다.
+- Git 저장소의 `.git` 폴더를 상위 루트로 옮기면 기존 커밋 이력을 유지하면서 모노레포 구조로 변경할 수 있다.
+
+### 부족한 점 / 추후 개선
+
+- 회원 검색 시 빈 조건을 쿼리스트링에서 제외하도록 개선 필요
+- 검색 버튼 및 실제 검색 API 호출 흐름 최종 점검 필요
+- Enter 키 검색을 위한 form 적용 검토
+- 로딩 및 오류 메시지 처리 필요
+- 자산, 자산품목, 대여, 예약 화면 구현 필요
+- 프로젝트 루트 README를 백엔드/프론트 통합 구조에 맞게 수정 필요
