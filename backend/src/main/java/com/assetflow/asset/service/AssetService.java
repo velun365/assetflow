@@ -28,7 +28,6 @@ public class AssetService {
         Asset asset = new Asset(
                 request.getName(),
                 request.getExplanation(),
-                request.getAssetType(),
                 category
 
         );
@@ -38,7 +37,6 @@ public class AssetService {
                 asset.getId(),
                 asset.getName(),
                 asset.getExplanation(),
-                asset.getAssetType(),
                 category.getId()
         );
         return response;

@@ -18,9 +18,6 @@ public class Asset {
     private String name;
     private String explanation;
 
-    @Enumerated(EnumType.STRING)
-    private AssetType assetType;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
@@ -33,10 +30,9 @@ public class Asset {
         category.getAssets().add(this);
     }
 
-    public Asset(String name, String explanation, AssetType assetType, Category category) {
+    public Asset(String name, String explanation, Category category) {
         this.name = name;
         this.explanation = explanation;
-        this.assetType = assetType;
         changeCategory(category);
     }
 

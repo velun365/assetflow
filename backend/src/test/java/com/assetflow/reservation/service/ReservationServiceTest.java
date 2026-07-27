@@ -2,7 +2,6 @@ package com.assetflow.reservation.service;
 
 import com.assetflow.asset.Asset;
 import com.assetflow.asset.AssetItem;
-import com.assetflow.asset.AssetType;
 import com.assetflow.asset.Category;
 import com.assetflow.asset.repository.AssetItemRepository;
 import com.assetflow.asset.repository.AssetRepository;
@@ -190,7 +189,7 @@ class ReservationServiceTest {
         Asset asset1 = new Asset(
                 "삼성",
                 "이것은 갤럭시 핸드폰입니다.",
-                AssetType.DEVICE
+                category1
         );
         asset1.changeCategory(category1);
 

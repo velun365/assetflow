@@ -17,7 +17,7 @@ public class CategoryController {
 
     @PostMapping("/api/categories")
     public CategoryCreateResponse createCategory(@Valid @RequestBody CategoryCreateRequest request) {
-        return categoryService.categoryCreate(request);
+        return categoryService.categoryCreate   (request);
     }
 
     @DeleteMapping("/api/categories/{categoryId}")

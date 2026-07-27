@@ -2,7 +2,6 @@ package com.assetflow;
 
 import com.assetflow.asset.Asset;
 import com.assetflow.asset.AssetItem;
-import com.assetflow.asset.AssetType;
 import com.assetflow.asset.Category;
 import com.assetflow.loan.Loan;
 import com.assetflow.member.Member;
@@ -60,26 +59,22 @@ public class InitTestData {
             Asset asset1 = new Asset(
                     "삼성 노트북",
                     "이노트북은 삼성 노트북입니다.",
-                    AssetType.DEVICE,
                     category1
             );
             Asset asset2 = new Asset(
                     "맥북",
                     "이노트북은 애플 노트북입니다.",
-                    AssetType.DEVICE,
                     category1
 
             );
             Asset asset3 = new Asset(
                     "2025자료",
                     "2025 분기결산 내역",
-                    AssetType.DOCUMENT,
                     category2
             );
             Asset asset4 = new Asset(
                     "이것은 책입니다.",
                     "김영한 java",
-                    AssetType.BOOK,
                     category3
             );
             em.persist(asset1);

@@ -1,6 +1,5 @@
 package com.assetflow.asset.repository;
 
-import com.assetflow.asset.AssetType;
 import com.assetflow.asset.dto.AssetSearchCondition;
 import com.assetflow.asset.dto.AssetSearchResponse;
 import com.querydsl.core.types.Projections;
@@ -31,14 +30,12 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                                 AssetSearchResponse.class,
                                 asset.id,
                                 asset.name,
-                                asset.assetType,
                                 category.name
                         ))
                 .from(asset)
                 .leftJoin(asset.category, category)
                 .where(
                         nameEq(condition.getName()),
-                        assetTypeEq(condition.getAssetType()),
                         categoryNameEq(condition.getCategoryName())
                 )
                 .offset(pageable.getOffset())
@@ -51,7 +48,6 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                 .leftJoin(asset.category, category)
                 .where(
                         nameEq(condition.getName()),
-                        assetTypeEq(condition.getAssetType()),
                         categoryNameEq(condition.getCategoryName())
                 );
 
@@ -65,9 +61,7 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
     private BooleanExpression nameEq(String name) {
         return hasText(name) ? asset.name.eq(name) : null;
     }
-    private BooleanExpression assetTypeEq(AssetType assetType) {
-        return assetType != null ? asset.assetType.eq(assetType) : null;
-    }
+
     private BooleanExpression categoryNameEq(String categoryName) {
         return hasText(categoryName) ? category.name.eq(categoryName) : null;
     }

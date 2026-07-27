@@ -146,15 +146,13 @@ class LoanServiceTest {
         Asset asset1 = new Asset(
                 "삼성",
                 "이것은 갤럭시 핸드폰입니다.",
-                AssetType.DEVICE
+                category1
         );
-        asset1.changeCategory(category1);
         Asset asset2 = new Asset(
                 "애플",
                 "이것은 애플 핸드폰입니다.",
-                AssetType.DEVICE
+                category1
         );
-        asset2.changeCategory(category1);
 
         AssetItem assetItem1 = new AssetItem(
                 "SM-510",
