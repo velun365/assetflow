@@ -49,14 +49,32 @@ public class Reservation {
     }
 
     public void cancel() {
+        if (this.reservationStatus == ReservationStatus.COMPLETED) {
+            throw new IllegalStateException("완료된 예약은 취소할 수 없습니다.");
+        }
+
+        if (this.reservationStatus == ReservationStatus.CANCELED) {
+            throw new IllegalStateException("이미 취소된 예약입니다.");
+        }
         this.reservationStatus = ReservationStatus.CANCELED;
     }
 
     public void ready() {
+        if (this.reservationStatus != ReservationStatus.WAITING) {
+            throw new IllegalStateException(
+                    "대기 중인 예약만 준비 상태로 변경할 수 있습니다."
+            );
+        }
+
         this.reservationStatus = ReservationStatus.READY;
     }
 
     public void completed() {
+        if (this.reservationStatus != ReservationStatus.READY) {
+            throw new IllegalStateException(
+                "준비된 예약만 완료 처리할 수 있습니다."
+        );
+    }
         this.reservationStatus = ReservationStatus.COMPLETED;
     }
 }

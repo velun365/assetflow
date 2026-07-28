@@ -571,3 +571,55 @@
 - 로딩 및 오류 메시지 처리 필요
 - 자산, 자산품목, 대여, 예약 화면 구현 필요
 - 프로젝트 루트 README를 백엔드/프론트 통합 구조에 맞게 수정 필요
+
+Day 15 - AssetItem 관리 및 React API 연동
+완료
+AssetItem 조회 API 구현
+GET /api/asset-items
+AssetItem 목록 조회
+Response DTO 반환
+assetItemId
+assetName
+serialNumber
+location
+assetItemStatus
+assetId
+AssetItem 폐기 기능 구현
+물리 삭제 대신 DISPOSED 상태로 변경
+dispose() 도메인 메서드 추가
+대여 중(RENTED)인 자산 품목은 폐기 불가
+Reservation 상태 변경 정책 보완
+WAITING → READY
+READY → COMPLETED
+WAITING / READY → CANCELED
+완료된 예약은 취소 불가
+이미 취소된 예약은 중복 취소 불가
+React AssetItemPage 구현
+useState를 사용하여 자산 품목 목록 관리
+useEffect를 사용하여 최초 렌더링 시 조회
+fetch("/api/asset-items")로 백엔드 API 연동
+조회 결과 화면 출력
+자산명
+위치
+시리얼 번호
+상태
+Vite Proxy 적용
+/api 요청을 Spring Boot(8080)로 전달
+CORS 문제 해결
+오늘 배운 것
+React Hook(useState, useEffect)은 반드시 컴포넌트 내부에서 호출해야 한다.
+fetch()는 Promise를 반환한다.
+async/await는 Promise를 동기 코드처럼 읽기 쉽게 작성하는 문법이다.
+await response.json()도 Promise를 반환하므로 await가 필요하다.
+try-catch를 사용하면 네트워크 예외를 처리할 수 있다.
+useEffect(..., [])는 컴포넌트 최초 렌더링 시 한 번만 실행된다.
+map()을 이용해 배열 데이터를 화면에 출력할 수 있다.
+Vite Proxy를 사용할 경우 fetch("/api/...") 형태로 요청해야 한다.
+부족한 점 / 추후 개선
+AssetItem 등록 화면 구현
+AssetItem 폐기 버튼 및 API 연동
+AssetItem 목록을 Table UI로 개선
+로딩 상태(loading) 관리
+공통 API 호출 함수 분리
+axios 도입 여부 검토
+AssetItem 검색 기능 추가

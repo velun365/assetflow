@@ -15,7 +15,13 @@ function AssetPage() {
 
   useEffect(() => {
     fetch("/api/assets/search")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("자산 조회에 실패했습니다.");
+        }
+
+        return response.json();
+      })
       .then((data) => {
         console.log(data);
         setAssets(data.content);
@@ -61,7 +67,7 @@ function AssetPage() {
 
   const onKeyDownKeyword = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      handleSearch(0);
     }
   };
 
@@ -71,7 +77,6 @@ function AssetPage() {
       <Link to="/assets/new">자산등록 </Link>
       <select name="" id="" value={searchType} onChange={onChangeSearchType}>
         <option value="name">자산명</option>
-        <option value="assetType">자산유형</option>
         <option value="categoryName">카테고리</option>
       </select>
       <input
@@ -87,7 +92,6 @@ function AssetPage() {
         <div key={asset.assetId}>
           <p>번호 : {asset.assetId}</p>
           <p>자산명 : {asset.name}</p>
-          <p>자산 유형 : {asset.assetType}</p>
           <p>카테고리 : {asset.categoryName}</p>
         </div>
       ))}

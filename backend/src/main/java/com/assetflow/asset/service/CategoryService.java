@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,16 @@ public class CategoryService {
                 category.getId(), category.getName()
         );
         return response;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryCreateResponse> getCategories() {
+        return categoryRepository.findAll().stream()
+                .map(category -> new CategoryCreateResponse(
+                        category.getId(),
+                        category.getName()
+                        ))
+                .toList();
     }
 
     private void validateDuplicateName(String name) {

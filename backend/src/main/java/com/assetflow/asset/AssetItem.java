@@ -38,9 +38,16 @@ public class AssetItem {
     }
 
     public void rentAsset() {
+        if (this.assetItemStatus != AssetItemStatus.AVAILABLE) {
+            throw new IllegalStateException("대여 가능한 자산 품목이 아닙니다.");
+        }
+
         this.assetItemStatus = AssetItemStatus.RENTED;
     }
     public void returnAsset() {
+        if (this.assetItemStatus != AssetItemStatus.RENTED) {
+            throw new IllegalStateException("대여 중인 자산 품목만 반납할 수 있습니다.");
+        }
         this.assetItemStatus = AssetItemStatus.AVAILABLE;
     }
 
@@ -48,5 +55,22 @@ public class AssetItem {
         this.asset = asset;
         asset.getAssetItems().add(this);
     }
+
+    public void dispose() {
+        if (this.assetItemStatus == AssetItemStatus.RENTED) {
+            throw new IllegalStateException(
+                    "대여 중인 자산 품목은 폐기할 수 없습니다."
+            );
+        }
+
+        if (this.assetItemStatus == AssetItemStatus.DISPOSED) {
+            throw new IllegalStateException(
+                    "이미 폐기된 자산 품목입니다."
+            );
+        }
+
+        this.assetItemStatus = AssetItemStatus.DISPOSED;
+    }
+
 
 }

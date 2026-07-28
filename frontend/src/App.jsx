@@ -21,7 +21,7 @@ function App() {
         <Route path="/assets" element={<AssetPage />} />
         <Route path="/assets/new" element={<AssetCreatePage />} />
         <Route path="/asset-items" element={<AssetItemPage />} />
-        <Route path="/asset-categories" element={<CategoryPage />} />
+        <Route path="/categories" element={<CategoryPage />} />
 
         <Route path="/loans" element={<LoanPage />} />
         <Route path="/reservations" element={<ReservationPage />} />

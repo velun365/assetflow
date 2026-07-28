@@ -13,6 +13,7 @@ const HomePage = () => {
       <Link to={"/asset-items"}>asset-items</Link> <br />
       <Link to={"/loans"}>loans</Link> <br />
       <Link to={"/reservations"}>reservations</Link> <br />
+      <Link to={"/categories"}>categories</Link> <br />
       <button onClick={onClickButton}>members 페이지로 이동</button>
     </div>
   );

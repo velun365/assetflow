@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AssetCreatePage = () => {
@@ -7,6 +7,8 @@ const AssetCreatePage = () => {
     name: "",
     explanation: "",
   });
+
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
   const handleSubmit = () => {
@@ -42,7 +44,21 @@ const AssetCreatePage = () => {
       [e.target.name]: e.target.value,
     });
   };
-
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("카테고리 조회 실패");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
   return (
     <div>
       <h1>자산 등록</h1>
@@ -51,13 +67,15 @@ const AssetCreatePage = () => {
         <select
           name="categoryId"
           id="categoryId"
-          value={asset.categoryId}
           onChange={onChangeAsset}
+          value={asset.categoryId}
         >
           <option value="">카테고리 선택</option>
-          <option value="1">전자기기</option>
-          <option value="2">사무용품</option>
-          <option value="3">문구</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
         </select>
       </div>
       <div>

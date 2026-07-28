@@ -10,19 +10,28 @@ import org.hibernate.sql.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
-
+    @GetMapping("/api/categories")
+    public List<CategoryCreateResponse> getCategories() {
+        return categoryService.getCategories();
+    }
     @PostMapping("/api/categories")
     public CategoryCreateResponse createCategory(@Valid @RequestBody CategoryCreateRequest request) {
-        return categoryService.categoryCreate   (request);
+        return categoryService.categoryCreate(request);
     }
+
+
 
     @DeleteMapping("/api/categories/{categoryId}")
     public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long categoryId) {
         categoryService.categoryDelete(categoryId);
         return ResponseEntity.noContent().build();
     }
+
+
 }
