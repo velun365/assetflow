@@ -10,7 +10,9 @@ import java.time.LocalDate;
 public class ReservationResponse {
     private Long id;
     private Long memberId;
-    private Long assetItem;
+    private String memberName;
+    private Long assetItemId;
+    private String assetName;
     private ReservationStatus reservationStatus;
     private LocalDate reservedAt;
 }

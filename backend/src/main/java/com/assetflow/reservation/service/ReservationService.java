@@ -91,12 +91,14 @@ public class ReservationService {
     public List<ReservationResponse> getReservations() {
         return reservationRepository.findAll()
                 .stream().map(
-                        history -> new ReservationResponse(
-                                history.getId(),
-                                history.getMember().getId(),
-                                history.getAssetItem().getId(),
-                                history.getReservationStatus(),
-                                history.getReservedAt()
+                        reservation -> new ReservationResponse(
+                                reservation.getId(),
+                                reservation.getMember().getId(),
+                                reservation.getMember().getName(),
+                                reservation.getAssetItem().getId(),
+                                reservation.getAssetItem().getAsset().getName(),
+                                reservation.getReservationStatus(),
+                                reservation.getReservedAt()
                         )
                 )
                 .toList();

@@ -623,3 +623,26 @@ AssetItem 목록을 Table UI로 개선
 공통 API 호출 함수 분리
 axios 도입 여부 검토
 AssetItem 검색 기능 추가
+
+## Day 15 - React 프론트엔드 연동 및 프로젝트 구조 통합
+
+[Frontend]
+
+- 예약 생성 페이지 구현
+- 예약 생성 라우팅 및 목록 페이지 이동 처리
+- 자산 품목 조회 API 함수 분리
+- 예약 페이지에서 자산 품목 목록 불러오기
+- select를 통한 예약 대상 자산 품목 선택 기능 구현
+- 예약 요청 상태(memberId, assetItemId) 관리
+- POST /api/reservations API 연동
+- 자산 미선택 시 제출 검증 추가
+- 예약 실패 예외 처리 추가
+
+[학습/트러블슈팅]
+
+- useEffect는 페이지 진입 시 조회 요청에 사용
+- handleSubmit은 사용자 제출 시 등록 요청에 사용
+- API 함수에서는 React state를 직접 변경하지 않고 데이터만 반환
+- select의 name과 e.target.name을 이용한 객체 state 변경 이해
+- 이벤트 핸들러는 선언만 하는 것이 아니라 전달하거나 직접 호출해야 함
+- Response 객체와 React state 객체의 역할 차이 확인
