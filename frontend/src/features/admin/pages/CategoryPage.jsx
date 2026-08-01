@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 function CategoryPage() {
   const [categories, setCategories] = useState([]);
   const [categoryName, setCategoryName] = useState("");
-
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {

@@ -646,3 +646,33 @@ AssetItem 검색 기능 추가
 - select의 name과 e.target.name을 이용한 객체 state 변경 이해
 - 이벤트 핸들러는 선언만 하는 것이 아니라 전달하거나 직접 호출해야 함
 - Response 객체와 React state 객체의 역할 차이 확인
+
+## 2026-08-01
+
+### Loan
+
+- 대여 생성 화면 구현
+- 대여 가능한 자산 품목 조회 API 연동
+- 자산 선택 후 대여 생성 기능 구현
+- 대여 전체 조회 화면 구현
+- 반납 요청 상태(RETURN_REQUESTED) 표시
+- 관리자 반납 승인 기능 구현
+- 대여 상태 변경 시 화면 즉시 갱신
+
+### Backend
+
+- LoanStatus에 RETURN_REQUESTED 추가
+- 회원 반납 요청 API 추가
+- 관리자 반납 승인 API 추가
+- Loan 엔티티 상태 변경 로직 개선
+  - requestReturn()
+  - approveReturn()
+  - markOverdue()
+- Loan DTO에 회원명, 자산명, 시리얼번호 추가
+
+### Frontend
+
+- 관리자(admin) 페이지 구조 분리 시작
+- 관리자/회원 URL 구조 정리
+- LoanCreatePage 구현
+- LoanPage 관리자 화면 개선

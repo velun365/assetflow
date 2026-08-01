@@ -66,7 +66,7 @@ class LoanServiceTest {
         );
         //when
         LoanCreateResponse loan = loanService.createLoan(request);
-        LoanReturnResponse response = loanService.returnLoan(loan.getLoanId());
+        LoanReturnResponse response = loanService.approveReturn(loan.getLoanId());
 
         //then
         Assertions.assertThat(response.getLoanStatus()).isEqualTo(LoanStatus.RETURNED);

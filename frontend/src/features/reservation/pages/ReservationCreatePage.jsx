@@ -54,6 +54,7 @@ const ReservationCreatePage = () => {
       [e.target.name]: Number(e.target.value),
     });
   };
+
   return (
     <div>
       <h1>예약페이지</h1>

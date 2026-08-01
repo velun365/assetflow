@@ -43,15 +43,28 @@ public class Loan {
         this.dueDate = this.loanDate.plusDays(RENTAL_PERIOD);
     }
 
-    public void returnLoan() {
-        if (this.loanStatus != LoanStatus.RETURNED) {
-            returnDate = LocalDate.now();
-            this.loanStatus = LoanStatus.RETURNED;
+    public void requestReturn() {
+        if (this.loanStatus != LoanStatus.RENTED
+                && this.loanStatus != LoanStatus.OVERDUE) {
+            throw new IllegalStateException("대여 중인 자산만 반납 요청할 수 있습니다.");
         }
+
+        this.loanStatus = LoanStatus.RETURN_REQUESTED;
+    }
+
+    public void approveReturn() {
+        if (this.loanStatus != LoanStatus.RETURN_REQUESTED) {
+            throw new IllegalStateException("반납 요청 상태인 대여만 승인할 수 있습니다.");
+        }
+
+        this.returnDate = LocalDate.now();
+        this.loanStatus = LoanStatus.RETURNED;
     }
 
     public void markOverdue() {
-        this.loanStatus = LoanStatus.OVERDUE;
+        if (this.loanStatus == LoanStatus.RENTED) {
+            this.loanStatus = LoanStatus.OVERDUE;
+        }
     }
 
 

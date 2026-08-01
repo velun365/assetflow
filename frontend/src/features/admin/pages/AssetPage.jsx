@@ -74,7 +74,7 @@ function AssetPage() {
   return (
     <div>
       <h1>자산 목록</h1>
-      <Link to="/assets/new">자산등록 </Link>
+      <Link to="">목록으로</Link> <br />
       <select name="" id="" value={searchType} onChange={onChangeSearchType}>
         <option value="name">자산명</option>
         <option value="categoryName">카테고리</option>
@@ -88,13 +88,29 @@ function AssetPage() {
         placeholder="검색어"
       ></input>
       <button onClick={() => handleSearch(0)}>검색</button>
-      {assets.map((asset) => (
-        <div key={asset.assetId}>
-          <p>번호 : {asset.assetId}</p>
-          <p>자산명 : {asset.name}</p>
-          <p>카테고리 : {asset.categoryName}</p>
-        </div>
-      ))}
+      <Link to="/admin/assets/new">+자산등록</Link>
+      <table>
+        <thead>
+          <tr>
+            <td>번호</td>
+            <td>자산명</td>
+            <td>카테고리</td>
+            <td>보유수량</td>
+            <td>대여가능수량</td>
+          </tr>
+        </thead>
+        <tbody>
+          {assets.map((asset) => (
+            <tr key={asset.assetId}>
+              <td>{asset.assetId}</td>
+              <td>{asset.name}</td>
+              <td>{asset.categoryName}</td>
+              <td></td>
+              <td></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div>
         <button
           disabled={pageInfo.first}

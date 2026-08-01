@@ -61,7 +61,55 @@ public class LoanService {
         }
         throw new IllegalStateException("대출이 불가 합니다.");
     }
+    @Transactional
+    public LoanReturnRequestResponse requestReturn(Long loanId, Long memberId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() ->
+                        new IllegalStateException("해당 대여 기록이 존재하지 않습니다."));
 
+        if (!loan.getMember().getId().equals(memberId)) {
+            throw new IllegalStateException("본인의 대여만 반납 요청할 수 있습니다.");
+        }
+
+        loan.requestReturn();
+
+        return new LoanReturnRequestResponse(
+                loan.getId(),
+                loan.getLoanStatus()
+        );
+    }
+
+    @Transactional
+    public LoanReturnResponse approveReturn(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() ->
+                        new IllegalStateException("해당 대여 기록이 존재하지 않습니다."));
+
+        AssetItem assetItem = loan.getAssetItem();
+
+        loan.approveReturn();
+
+        List<Reservation> reservations =
+                reservationRepository.findByAssetItemIdAndReservationStatusOrderByReservedAtAsc(
+                        assetItem.getId(),
+                        ReservationStatus.WAITING
+                );
+
+        if (!reservations.isEmpty()) {
+            Reservation reservation = reservations.get(0);
+            reservation.ready();
+        }
+
+        assetItem.returnAsset();
+
+        return new LoanReturnResponse(
+                loan.getId(),
+                loan.getLoanStatus(),
+                loan.getMember().getId(),
+                assetItem.getId(),
+                loan.getReturnDate()
+        );
+    }
     private void completeReadyReservation(Member member, AssetItem assetItem) {
         List<Reservation> reservations = getReadyReservationsByAsset(assetItem);
         if (!reservations.isEmpty()) {
@@ -78,38 +126,7 @@ public class LoanService {
                 assetItem.getId(), ReservationStatus.READY);
     }
 
-    @Transactional
-    public LoanReturnResponse returnLoan(Long loanId) {
-        Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new IllegalStateException("해당 대여 기록이 존재하지 않습니다."));
 
-        AssetItem assetItem = loan.getAssetItem();
-
-        if (loan.getLoanStatus() == LoanStatus.RENTED) {
-            loan.returnLoan();
-
-            List<Reservation> reservations =
-                    reservationRepository.findByAssetItemIdAndReservationStatusOrderByReservedAtAsc(
-                            assetItem.getId(), ReservationStatus.WAITING);
-
-            if (!reservations.isEmpty()) {
-                Reservation reservation = reservations.get(0);
-                reservation.ready();
-            }
-
-            assetItem.returnAsset();
-            return new LoanReturnResponse(
-                    loan.getId(),
-                    loan.getLoanStatus(),
-                    loan.getMember().getId(),
-                    loan.getAssetItem().getId(),
-                    loan.getReturnDate()
-            );
-
-        }
-        throw new IllegalStateException("이미 반납된 대여 입니다.");
-
-    }
 
     //전체 조회
     public List<LoanListResponse> listAll() {
@@ -117,8 +134,14 @@ public class LoanService {
                 .map(loan -> new LoanListResponse(
                         loan.getId(),
                         loan.getLoanStatus(),
+
                         loan.getMember().getId(),
+                        loan.getMember().getName(),
+
                         loan.getAssetItem().getId(),
+                        loan.getAssetItem().getAsset().getName(),
+                        loan.getAssetItem().getSerialNumber(),
+
                         loan.getLoanDate(),
                         loan.getDueDate(),
                         loan.getReturnDate()
