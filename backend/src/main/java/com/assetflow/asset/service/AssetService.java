@@ -1,11 +1,9 @@
 package com.assetflow.asset.service;
 
 import com.assetflow.asset.Asset;
+import com.assetflow.asset.AssetItemStatus;
 import com.assetflow.asset.Category;
-import com.assetflow.asset.dto.AssetCreateRequest;
-import com.assetflow.asset.dto.AssetCreateResponse;
-import com.assetflow.asset.dto.AssetSearchCondition;
-import com.assetflow.asset.dto.AssetSearchResponse;
+import com.assetflow.asset.dto.*;
 import com.assetflow.asset.repository.AssetRepository;
 import com.assetflow.asset.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -31,15 +31,39 @@ public class AssetService {
                 category
 
         );
-        asset.changeCategory(category);
         assetRepository.save(asset);
-        AssetCreateResponse response = new AssetCreateResponse(
+        return new AssetCreateResponse(
                 asset.getId(),
                 asset.getName(),
                 asset.getExplanation(),
                 category.getId()
         );
-        return response;
+    }
+
+    public AssetDetailResponse getAssetDetail(Long assetId) {
+        Asset asset = assetRepository.findById(assetId).orElseThrow(() ->
+                new IllegalStateException("존재하지 않는 자산입니다."));
+        List<AssetItemDetailResponse> assetItems =
+                asset.getAssetItems().stream().map(assetItem ->
+                        new AssetItemDetailResponse(
+                                assetItem.getId(),
+                                assetItem.getSerialNumber(),
+                                assetItem.getLocation(),
+                                assetItem.getAssetItemStatus()
+                        )).toList();
+
+        int totalCount = assetItems.size();
+        long availableCount = assetItems.stream().filter(assetItem -> assetItem.getAssetItemStatus() == AssetItemStatus.AVAILABLE).count();
+
+        return new AssetDetailResponse(
+                asset.getId(),
+                asset.getName(),
+                asset.getExplanation(),
+                asset.getCategory().getName(),
+                totalCount,
+                availableCount,
+                assetItems
+        );
     }
 
     @Transactional

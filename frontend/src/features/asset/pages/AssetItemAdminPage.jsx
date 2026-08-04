@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchAssetItems } from "../api/fetchAssetItems";
-const AssetItemPage = () => {
+const AssetItemAdminPage = () => {
   const [assetItems, setAssetItems] = useState([]);
   const [error, setError] = useState("");
 
@@ -24,12 +24,13 @@ const AssetItemPage = () => {
         method: "DELETE",
       });
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error("자산 아이템 품목 조회에 실패했습니다.");
+        throw new Error("자산 아이템 삭제에 실패했습니다.");
       }
 
-      setAssetItems(
-        assetItems.filter((assetItem) => assetItem.assetItemId !== assetItemId),
+      setAssetItems((prevAssetItem) =>
+        prevAssetItem.filter(
+          (assetItem) => assetItem.assetItemId !== assetItemId,
+        ),
       );
     } catch (error) {
       setError(error.message);
@@ -38,8 +39,8 @@ const AssetItemPage = () => {
 
   return (
     <div>
-      <h1>자산 품목 목록</h1>
-      <Link to="/asset-items/new">자산 품목 등록하기</Link>
+      <h1>자산 상세</h1>
+      <Link to="/admin/asset-items/new">자산 품목 등록하기</Link>
       {error && <p>{error}</p>}
 
       {assetItems.map((assetItem) => (
@@ -61,4 +62,4 @@ const AssetItemPage = () => {
   );
 };
 
-export default AssetItemPage;
+export default AssetItemAdminPage;

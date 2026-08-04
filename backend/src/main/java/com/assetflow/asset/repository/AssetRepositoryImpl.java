@@ -10,9 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import java.util.List;
-
+import com.assetflow.asset.AssetItemStatus;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import static com.assetflow.asset.QAsset.*;
 import static com.assetflow.asset.QCategory.category;
+import static com.assetflow.asset.QAssetItem.assetItem;
 import static org.springframework.util.StringUtils.*;
 
 public class AssetRepositoryImpl implements AssetRepositoryCustom {
@@ -30,14 +32,22 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                                 AssetSearchResponse.class,
                                 asset.id,
                                 asset.name,
-                                category.name
+                                category.name,
+                                assetItem.id.count(),
+                                new CaseBuilder()
+                                        .when(assetItem.assetItemStatus.eq(AssetItemStatus.AVAILABLE))
+                                        .then(1L)
+                                        .otherwise(0L)
+                                        .sum()
                         ))
                 .from(asset)
                 .leftJoin(asset.category, category)
+                .leftJoin(asset.assetItems, assetItem)
                 .where(
-                        nameEq(condition.getName()),
-                        categoryNameEq(condition.getCategoryName())
+                        nameContains(condition.getName()),
+                        categoryNameContains(condition.getCategoryName())
                 )
+                .groupBy(asset.id ,asset.name, category.name)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -47,8 +57,8 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                 .from(asset)
                 .leftJoin(asset.category, category)
                 .where(
-                        nameEq(condition.getName()),
-                        categoryNameEq(condition.getCategoryName())
+                        nameContains(condition.getName()),
+                        categoryNameContains(condition.getCategoryName())
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
@@ -58,12 +68,15 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
 
 
 
-    private BooleanExpression nameEq(String name) {
-        return hasText(name) ? asset.name.eq(name) : null;
+    private BooleanExpression nameContains(String name) {
+        return hasText(name)
+                ? asset.name.containsIgnoreCase(name)
+                : null;
     }
 
-    private BooleanExpression categoryNameEq(String categoryName) {
-        return hasText(categoryName) ? category.name.eq(categoryName) : null;
+    private BooleanExpression categoryNameContains(String categoryName) {
+        return hasText(categoryName)
+                ? category.name.contains(categoryName)
+                : null;
     }
-
 }

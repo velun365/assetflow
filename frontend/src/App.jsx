@@ -1,17 +1,22 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import MemberPage from "./features/admin/pages/MemberPage";
-import CategoryPage from "./features/admin/pages/CategoryPage";
-import LoanPage from "./features/admin/pages/LoanPage";
-import AssetPage from "./features/admin/pages/AssetPage";
-import AssetItemPage from "./features/admin/pages/AssetItemPage";
-import ReservationPage from "./features/admin/pages/ReservationPage";
-import AssetCreatePage from "./features/admin/pages/AssetCreatePage";
-import AssetItemCreatePage from "./features/admin/pages/AssetItemCreatePage";
 
-import MemberCreatePage from "./features/member/pages/MemberCreatePage";
-import LoansPage from "./features/loan/pages/LoansPage";
+import AssetAdminPage from "./features/asset/pages/AssetAdminPage";
+import AssetDetailPage from "./features/asset/pages/AssetDetailPage";
+import AssetItemAdminPage from "./features/asset/pages/AssetItemAdminPage";
+import AssetCreatePage from "./features/asset/pages/AssetCreatePage";
+import AssetItemCreatePage from "./features/asset/pages/AssetItemCreatePage";
+
+import CategoryAdminPage from "./features/category/pages/CategoryAdminPage";
+
+import LoanAdminPage from "./features/loan/pages/LoanAdminPage";
 import LoanCreatePage from "./features/loan/pages/LoanCreatePage";
+import LoansPage from "./features/loan/pages/LoansPage";
+
+import MemberAdminPage from "./features/member/pages/MemberAdminPage";
+import MemberCreatePage from "./features/member/pages/MemberCreatePage";
+
+import ReservationAdminPage from "./features/reservation/pages/ReservationAdminPage";
 import ReservationCreatePage from "./features/reservation/pages/ReservationCreatePage";
 
 import HomePage from "./features/home/pages/HomePage";
@@ -19,28 +24,36 @@ import Notfound from "./features/Notfound";
 
 function App() {
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/admin/members" element={<MemberPage />} />
-        <Route path="/admin/loans" element={<LoanPage />} />
-        <Route path="/admin/reservations" element={<ReservationPage />} />
-        <Route path="/admin/assets" element={<AssetPage />} />
-        <Route path="/admin/asset-items" element={<AssetItemPage />} />
-        <Route path="/admin/categories" element={<CategoryPage />} />
-        <Route path="/admin/assets/new" element={<AssetCreatePage />} />
-        <Route
-          path="/admin/asset-items/new"
-          element={<AssetItemCreatePage />}
-        />
-        <Route path="/members/new" element={<MemberCreatePage />} />
-        <Route path="/loans/new" element={<LoanCreatePage />} />
-        <Route path="/loansPage" element={<LoansPage />} />
-        <Route path="/reservations/new" element={<ReservationCreatePage />} />
+    <Routes>
+      {/* Home */}
+      <Route path="/" element={<HomePage />} />
 
-        <Route path="*" element={<Notfound />} />
-      </Routes>
-    </>
+      {/* Member */}
+      <Route path="/admin/members" element={<MemberAdminPage />} />
+      <Route path="/members/new" element={<MemberCreatePage />} />
+
+      {/* Asset */}
+      <Route path="/admin/assets" element={<AssetAdminPage />} />
+      <Route path="/admin/assets/new" element={<AssetCreatePage />} />
+      <Route path="/admin/assets/:assetId" element={<AssetDetailPage />} />
+
+      <Route path="/admin/asset-items" element={<AssetItemAdminPage />} />
+      <Route path="/admin/asset-items/new" element={<AssetItemCreatePage />} />
+
+      <Route path="/admin/categories" element={<CategoryAdminPage />} />
+
+      {/* Loan */}
+      <Route path="/admin/loans" element={<LoanAdminPage />} />
+      <Route path="/loans/new" element={<LoanCreatePage />} />
+      <Route path="/loans" element={<LoansPage />} />
+
+      {/* Reservation */}
+      <Route path="/admin/reservations" element={<ReservationAdminPage />} />
+      <Route path="/reservations/new" element={<ReservationCreatePage />} />
+
+      {/* Not Found */}
+      <Route path="*" element={<Notfound />} />
+    </Routes>
   );
 }
 

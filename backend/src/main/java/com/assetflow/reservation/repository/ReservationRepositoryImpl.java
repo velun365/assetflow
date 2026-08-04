@@ -25,7 +25,10 @@ public class ReservationRepositoryImpl implements ReservationRepositoryCustom {
     }
 
     @Override
-    public Page<ReservationSearchResponse> searchReservation(ReservationSearchCondition condition, Pageable pageable) {
+    public Page<ReservationSearchResponse> searchReservation(
+            ReservationSearchCondition condition,
+            Pageable pageable
+    ) {
         List<ReservationSearchResponse> content = queryFactory
                 .select(
                         Projections.constructor(
@@ -42,52 +45,70 @@ public class ReservationRepositoryImpl implements ReservationRepositoryCustom {
                 .join(assetItem.asset, asset)
                 .join(reservation.member, member)
                 .where(
-                        memberNameEq(condition.getMemberName()),
-                        assetNameEq(condition.getAssetName()),
+                        memberNameContains(condition.getMemberName()),
+                        assetNameContains(condition.getAssetName()),
                         reservationStatusEq(condition.getReservationStatus()),
                         reservationDateGoe(condition.getReserveAtFrom()),
                         reservationDateLoe(condition.getReserveAtTo())
                 )
-                .orderBy(reservation.reservedAt.desc(), reservation.id.desc())
+                .orderBy(
+                        reservation.reservedAt.desc(),
+                        reservation.id.desc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
-                .select(
-                        reservation.count()
-                )
+                .select(reservation.count())
                 .from(reservation)
                 .join(reservation.assetItem, assetItem)
                 .join(assetItem.asset, asset)
                 .join(reservation.member, member)
                 .where(
-                        memberNameEq(condition.getMemberName()),
-                        assetNameEq(condition.getAssetName()),
+                        memberNameContains(condition.getMemberName()),
+                        assetNameContains(condition.getAssetName()),
                         reservationStatusEq(condition.getReservationStatus()),
                         reservationDateGoe(condition.getReserveAtFrom()),
                         reservationDateLoe(condition.getReserveAtTo())
                 );
-        return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
+
+        return PageableExecutionUtils.getPage(
+                content,
+                pageable,
+                () -> countQuery.fetchOne()
+        );
     }
 
-    private BooleanExpression memberNameEq(String memberName) {
-        return hasText(memberName) ? member.name.eq(memberName) : null;
+    private BooleanExpression memberNameContains(String memberName) {
+        return hasText(memberName)
+                ? member.name.contains(memberName)
+                : null;
     }
 
-    private BooleanExpression assetNameEq(String assetName) {
-        return hasText(assetName) ? asset.name.eq(assetName) : null;
+    private BooleanExpression assetNameContains(String assetName) {
+        return hasText(assetName)
+                ? asset.name.containsIgnoreCase(assetName)
+                : null;
     }
 
-    private BooleanExpression reservationStatusEq(ReservationStatus reservationStatus) {
-        return reservationStatus != null ? reservation.reservationStatus.eq(reservationStatus) : null;
+    private BooleanExpression reservationStatusEq(
+            ReservationStatus reservationStatus
+    ) {
+        return reservationStatus != null
+                ? reservation.reservationStatus.eq(reservationStatus)
+                : null;
     }
 
     private BooleanExpression reservationDateGoe(LocalDate reserveAtFrom) {
-        return reserveAtFrom != null ? reservation.reservedAt.goe(reserveAtFrom) : null;
+        return reserveAtFrom != null
+                ? reservation.reservedAt.goe(reserveAtFrom)
+                : null;
     }
 
     private BooleanExpression reservationDateLoe(LocalDate reserveAtTo) {
-        return reserveAtTo != null ? reservation.reservedAt.loe(reserveAtTo) : null;
+        return reserveAtTo != null
+                ? reservation.reservedAt.loe(reserveAtTo)
+                : null;
     }
 }

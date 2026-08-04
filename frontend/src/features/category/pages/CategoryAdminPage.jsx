@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-function CategoryPage() {
+function CategoryAdminPage() {
   const [categories, setCategories] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -65,6 +65,11 @@ function CategoryPage() {
         console.error("카테고리 등록 오류 : ", error);
       });
   };
+  const onKeyDownKeyword = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit(0);
+    }
+  };
   return (
     <div>
       <h1>카테고리 목록</h1>
@@ -90,6 +95,7 @@ function CategoryPage() {
           onChange={(e) => {
             setCategoryName(e.target.value);
           }}
+          onKeyDown={onKeyDownKeyword}
           placeholder="추가할 카테고리를 입력하세요"
         />
         <button
@@ -104,4 +110,4 @@ function CategoryPage() {
   );
 }
 
-export default CategoryPage;
+export default CategoryAdminPage;

@@ -30,7 +30,7 @@ const AssetCreatePage = () => {
         return data;
       })
       .then((data) => {
-        navigate("/assets");
+        navigate("/admin/assets");
       })
       .catch((error) => {
         setErrorMessage(error.message);

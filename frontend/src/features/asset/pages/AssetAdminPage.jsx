@@ -1,23 +1,30 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-function MemberPage() {
-  const [members, setMembers] = useState([]);
+function AssetAdminPage() {
+  const [assets, setAssets] = useState([]);
   const [pageInfo, setPageInfo] = useState({
     number: 0,
     totalPages: 0,
     first: true,
     last: true,
   });
-  const [searchType, setSearchType] = useState("loginId");
 
+  const [searchType, setSearchType] = useState("name");
   const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
-    fetch("/api/members/search")
-      .then((response) => response.json())
+    fetch("/api/assets/search")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("자산 조회에 실패했습니다.");
+        }
+
+        return response.json();
+      })
       .then((data) => {
         console.log(data);
-        setMembers(data.content);
+        setAssets(data.content);
         setPageInfo({
           number: data.number,
           totalPages: data.totalPages,
@@ -30,17 +37,14 @@ function MemberPage() {
       });
   }, []);
 
-  const handleSearch = (pageNumber = 0) => {
+  const handleSearch = (pageNumber) => {
     const params = new URLSearchParams();
-    if (keyword.trim() !== "") {
-      params.append(searchType, keyword.trim());
-    }
+    params.append(searchType, keyword);
     params.append("page", pageNumber);
-    fetch(`/api/members/search?${params.toString()}`)
+    fetch(`/api/assets/search?${params.toString()}`)
       .then((response) => response.json())
       .then((data) => {
-        setMembers(data.content);
-
+        setAssets(data.content);
         setPageInfo({
           number: data.number,
           totalPages: data.totalPages,
@@ -52,25 +56,27 @@ function MemberPage() {
         console.error(error);
       });
   };
+
   const onChangeSearchType = (e) => {
     setSearchType(e.target.value);
   };
+
   const onChangeKeyword = (e) => {
     setKeyword(e.target.value);
   };
+
   const onKeyDownKeyword = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      handleSearch(0);
     }
   };
+
   return (
     <div>
-      <h1>회원목록</h1>
-      <button onClick={() => handleSearch(0)}> 검색</button>
+      <h1>자산 목록</h1>
       <select name="" id="" value={searchType} onChange={onChangeSearchType}>
-        <option value="loginId">아이디</option>
-        <option value="name">이름</option>
-        <option value="departmentName">부서명</option>
+        <option value="name">자산명</option>
+        <option value="categoryName">카테고리</option>
       </select>
       <input
         type="text"
@@ -79,25 +85,41 @@ function MemberPage() {
         onChange={onChangeKeyword}
         onKeyDown={onKeyDownKeyword}
         placeholder="검색어"
-      />
-
-      {members.map((member) => (
-        <div key={member.memberId}>
-          <p>회원번호 : {member.memberId}</p>
-          <p>아이디 : {member.loginId}</p>
-          <p>이름 : {member.name}</p>
-          <p>상태 : {member.status}</p>
-          <p>부서 : {member.departmentName}</p>
-        </div>
-      ))}
+      ></input>
+      <button onClick={() => handleSearch(0)}>검색</button>
+      <Link to="/admin/assets/new">+자산등록</Link>
+      <table>
+        <thead>
+          <tr>
+            <td>번호</td>
+            <td>자산명</td>
+            <td>카테고리</td>
+            <td>보유수량</td>
+            <td>대여가능수량</td>
+          </tr>
+        </thead>
+        <tbody>
+          {assets.map((asset) => (
+            <tr key={asset.assetId}>
+              <td>{asset.assetId}</td>
+              <td>
+                <Link to={`/admin/assets/${asset.assetId}`}>{asset.name}</Link>
+              </td>
+              <td>{asset.categoryName}</td>
+              <td>{asset.totalCount}</td>
+              <td>{asset.availableCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div>
         <button
-          onClick={() => handleSearch(pageInfo.number - 1)}
           disabled={pageInfo.first}
+          onClick={() => handleSearch(pageInfo.number - 1)}
         >
           이전
         </button>
-        {Array.from({ length: pageInfo.totalPages }, (_, index) => (
+        {Array.from({ length: pageInfo.totalPages }).map((_, index) => (
           <button
             key={index}
             onClick={() => handleSearch(index)}
@@ -107,8 +129,8 @@ function MemberPage() {
           </button>
         ))}
         <button
-          onClick={() => handleSearch(pageInfo.number + 1)}
           disabled={pageInfo.last}
+          onClick={() => handleSearch(pageInfo.number + 1)}
         >
           다음
         </button>
@@ -117,4 +139,4 @@ function MemberPage() {
   );
 }
 
-export default MemberPage;
+export default AssetAdminPage;

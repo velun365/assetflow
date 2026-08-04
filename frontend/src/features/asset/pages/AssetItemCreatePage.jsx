@@ -43,7 +43,7 @@ const AssetItemCreatePage = () => {
         throw new Error(data.message || "자산 품목 등록 실패");
       }
 
-      navigate("/asset-items");
+      navigate("/admin/asset-items");
     } catch (error) {
       setError(error.message);
     }

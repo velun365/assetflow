@@ -676,3 +676,144 @@ AssetItem 검색 기능 추가
 - 관리자/회원 URL 구조 정리
 - LoanCreatePage 구현
 - LoanPage 관리자 화면 개선
+
+## 2026-08-03 ~ 2026-08-04
+
+### Frontend 구조 리팩터링
+
+- 프론트엔드 디렉터리를 역할 중심 구조에서 도메인 중심 구조로 변경
+  - `features/asset`
+  - `features/category`
+  - `features/member`
+  - `features/loan`
+  - `features/reservation`
+  - `features/home`
+- 관리자 페이지 파일명을 역할이 드러나도록 정리
+  - `AssetAdminPage`
+  - `AssetItemAdminPage`
+  - `CategoryAdminPage`
+  - `MemberAdminPage`
+  - `LoanAdminPage`
+  - `ReservationAdminPage`
+- 기존 `features/admin/pages`에 모여 있던 페이지를 각 도메인 폴더로 이동
+- 파일 이동에 맞춰 `App.jsx`의 import 경로와 Route 재정리
+- 관리자와 사용자 URL 역할 분리
+  - 관리자 자산 목록: `/admin/assets`
+  - 관리자 자산 상세: `/admin/assets/:assetId`
+  - 관리자 대여 관리: `/admin/loans`
+  - 관리자 예약 현황: `/admin/reservations`
+  - 사용자 대여 신청: `/loans/new`
+  - 사용자 대여 목록: `/loans`
+  - 사용자 예약 신청: `/reservations/new`
+
+### Asset
+
+- 관리자 자산 목록 화면 개선
+  - 자산명 및 카테고리 검색
+  - 페이지네이션 적용
+  - 전체 품목 수 표시
+  - 대여 가능 품목 수 표시
+  - 자산명 클릭 시 상세 페이지 이동
+- Asset 검색 Querydsl 집계 쿼리 개선
+  - `Asset`과 `AssetItem` left join
+  - `groupBy`를 사용해 자산별 품목 수 집계
+  - `assetItem.id.count()`로 전체 품목 수 계산
+  - `CaseBuilder`를 사용해 `AVAILABLE` 품목 수 계산
+- 자산 상세 조회 API 구현
+  - `GET /api/assets/{assetId}`
+  - 자산명, 설명, 카테고리, 전체 품목 수, 대여 가능 수 반환
+  - 연결된 개별 AssetItem 목록 반환
+- `AssetDetailPage` 구현
+  - `useParams()`로 URL의 `assetId` 조회
+  - 자산 기본 정보 출력
+  - 개별 품목의 시리얼번호, 위치, 상태 출력
+  - 등록된 품목이 없을 경우 빈 목록 메시지 표시
+  - 자산 목록으로 이동하는 링크 추가
+  - 임시 이미지 영역 추가
+- 자산 등록 완료 후 잘못된 경로로 이동하던 문제 수정
+  - `/assets` → `/admin/assets`
+
+### Member / Asset 검색 개선
+
+- Querydsl 문자열 검색 방식을 완전 일치에서 부분 일치로 변경
+  - `eq()` → `contains()` 또는 `containsIgnoreCase()`
+- 회원 검색 개선
+  - loginId 부분 검색
+  - 회원명 부분 검색
+  - 부서명 부분 검색
+- 자산 검색 개선
+  - 자산명 부분 검색
+  - 카테고리명 부분 검색
+- 검색 메서드 이름을 실제 동작에 맞게 변경
+  - `nameEq()` → `nameContains()`
+  - `memberNameEq()` → `memberNameContains()`
+
+### Loan
+
+- 관리자 대여 페이지를 카드형 목록에서 테이블 구조로 변경
+- 관리자 대여 검색 API 연동
+  - `GET /api/loans/search`
+  - 회원명 검색
+  - 자산품목 번호 검색
+  - 대여 상태 검색
+  - 대여일 기간 검색
+  - 페이지네이션 적용
+- 관리자 반납 승인 기능 유지
+  - `RETURN_REQUESTED` 상태일 때 반납 승인 가능
+  - 승인 성공 시 해당 대여 건의 상태와 실제 반납일을 화면에서 즉시 갱신
+- 관리자 페이지와 사용자 페이지의 역할 구분
+  - 관리자: 전체 대여 현황 조회 및 반납 승인
+  - 사용자: 본인 대여 목록 조회 및 반납 요청
+
+### Reservation
+
+- 관리자 예약 현황 페이지를 테이블 구조로 변경
+- 관리자용 예약 생성 및 일반 예약 취소 기능 제거
+  - 관리자는 전체 예약 현황 조회 중심
+  - 사용자는 본인의 예약 생성 및 취소 담당
+- 예약 검색 API 연동
+  - `GET /api/reservations/search`
+  - 회원명 검색
+  - 자산명 검색
+  - 예약 상태 검색
+  - 페이지네이션 적용
+- 예약 Querydsl 문자열 검색을 부분 검색으로 변경
+  - 회원명 `contains()`
+  - 자산명 `containsIgnoreCase()`
+- 예약 상태와 예약일 기간 조건은 정확 검색 및 범위 검색 유지
+  - 상태: `eq()`
+  - 시작일: `goe()`
+  - 종료일: `loe()`
+
+### 오늘 배운 것
+
+- 프론트 화면 URL과 백엔드 API URL은 역할이 다르다.
+  - `/admin/assets`는 React 화면 경로
+  - `/api/assets/search`는 백엔드 데이터 요청 경로
+- `useParams()`는 배열이 아니라 객체를 반환한다.
+  - `const { assetId } = useParams()`
+- API 응답 전에는 state가 `null`일 수 있으므로 로딩 처리가 필요하다.
+  - `if (!asset) return <p>불러오는 중...</p>`
+- 객체 내부에 List가 포함될 수 있다.
+  - `asset`은 객체 하나
+  - `asset.assetItems`는 배열
+- 자산의 전체 품목 수는 별도 수량 필드를 직접 입력하는 것이 아니라 연결된 AssetItem 개수로 계산한다.
+- 대여 가능 수는 `AVAILABLE` 상태인 AssetItem 개수로 계산한다.
+- `CaseBuilder`를 사용하면 SQL의 CASE WHEN과 같은 조건부 집계를 Querydsl에서 작성할 수 있다.
+- 관리자 화면과 사용자 화면은 같은 도메인을 사용하더라도 목적이 다르다.
+  - 관리자는 전체 현황 및 상태 처리
+  - 사용자는 본인의 신청과 조회
+- Querydsl의 `BooleanExpression`은 조회 결과가 아니라 `where`절에 들어갈 검색 조건 객체다.
+- `where()`에 전달된 null 조건은 Querydsl이 무시하므로 동적 검색을 구현할 수 있다.
+- 문자열 검색은 사용자 경험을 고려해 이름이나 자산명에는 부분 검색을 사용하는 것이 자연스럽다.
+- Enum, id, 상태값처럼 명확한 값은 `eq()` 검색을 유지하는 것이 적절하다.
+
+### 트러블슈팅
+
+#### 자산 상세 페이지에서 null 참조 오류
+
+첫 렌더링 시 API 응답이 도착하기 전에 `asset.assetItems`에 접근하여 오류가 발생했다.
+
+```text
+Cannot read properties of null (reading 'assetItems')
+```

@@ -1,9 +1,6 @@
 package com.assetflow.asset.controller;
 
-import com.assetflow.asset.dto.AssetCreateRequest;
-import com.assetflow.asset.dto.AssetCreateResponse;
-import com.assetflow.asset.dto.AssetSearchCondition;
-import com.assetflow.asset.dto.AssetSearchResponse;
+import com.assetflow.asset.dto.*;
 import com.assetflow.asset.service.AssetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +18,11 @@ public class AssetController {
     @PostMapping
     public AssetCreateResponse createAsset(@Valid @RequestBody AssetCreateRequest request) {
         return assetService.createAsset(request);
+    }
+
+    @GetMapping("{assetId}")
+    public AssetDetailResponse getAssetDetail(@PathVariable Long assetId){
+        return assetService.getAssetDetail(assetId);
     }
 
     @DeleteMapping("/{assetId}")

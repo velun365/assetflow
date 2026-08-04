@@ -38,11 +38,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .from(member)
                 .leftJoin(member.department, department)
                 .where(
-                        loginIdEq(condition.getLoginId()),
-                        nameEq(condition.getName()),
+                        loginIdContains(condition.getLoginId()),
+                        nameContains(condition.getName()),
                         statusEq(condition.getStatus()),
-                        departmentNameEq(condition.getDepartmentName())
-
+                        departmentNameContains(condition.getDepartmentName())
                 )
                 .fetch();
     }
@@ -62,11 +61,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .from(member)
                 .leftJoin(member.department, department)
                 .where(
-                        loginIdEq(condition.getLoginId()),
-                        nameEq(condition.getName()),
+                        loginIdContains(condition.getLoginId()),
+                        nameContains(condition.getName()),
                         statusEq(condition.getStatus()),
-                        departmentNameEq(condition.getDepartmentName())
-
+                        departmentNameContains(condition.getDepartmentName())
                 )
                 .orderBy(member.id.desc(), member.name.asc())
                 .offset(pageable.getOffset())
@@ -78,29 +76,36 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 .from(member)
                 .leftJoin(member.department, department)
                 .where(
-                        loginIdEq(condition.getLoginId()),
-                        nameEq(condition.getName()),
+                        loginIdContains(condition.getLoginId()),
+                        nameContains(condition.getName()),
                         statusEq(condition.getStatus()),
-                        departmentNameEq(condition.getDepartmentName())
-
+                        departmentNameContains(condition.getDepartmentName())
                 );
         return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
     }
 
-
-    private BooleanExpression loginIdEq(String loginId) {
-        return hasText(loginId) ? member.loginId.eq(loginId) : null;
+    private BooleanExpression loginIdContains(String loginId) {
+        return hasText(loginId)
+                ? member.loginId.containsIgnoreCase(loginId)
+                : null;
     }
 
-    private BooleanExpression nameEq(String name) {
-        return hasText(name) ? member.name.eq(name) : null;
+    private BooleanExpression nameContains(String name) {
+        return hasText(name)
+                ? member.name.contains(name)
+                : null;
     }
+
     private BooleanExpression statusEq(MemberStatus status) {
-        return status != null ? member.status.eq(status) : null;
+        return status != null
+                ? member.status.eq(status)
+                : null;
     }
 
-    private BooleanExpression departmentNameEq(String departmentName) {
-        return hasText(departmentName) ? department.name.eq(departmentName) : null;
+    private BooleanExpression departmentNameContains(String departmentName) {
+        return hasText(departmentName)
+                ? department.name.contains(departmentName)
+                : null;
     }
 
 
