@@ -47,7 +47,7 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                 .join(assetItem.asset, asset)
                 .where(
                         loanStatusEq(condition.getLoanStatus()),
-                        memberNameEq(condition.getMemberName()),
+                        memberNameContains(condition.getMemberName()),
                         assetItemIdEq(condition.getAssetItemId()),
                         loanDateGoe(condition.getLoanDateFrom()),
                         loanDateLoe(condition.getLoanDateTo())
@@ -67,7 +67,7 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                 .join(assetItem.asset, asset)
                 .where(
                         loanStatusEq(condition.getLoanStatus()),
-                        memberNameEq(condition.getMemberName()),
+                        memberNameContains(condition.getMemberName()),
                         assetItemIdEq(condition.getAssetItemId()),
                         loanDateGoe(condition.getLoanDateFrom()),
                         loanDateLoe(condition.getLoanDateTo())
@@ -80,8 +80,10 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
         return loanStatus != null ? loan.loanStatus.eq(loanStatus) : null;
     }
 
-    private BooleanExpression memberNameEq(String memberName) {
-        return hasText(memberName) ? member.name.eq(memberName) : null;
+    private BooleanExpression memberNameContains(String memberName) {
+        return hasText(memberName)
+                ? member.name.contains(memberName)
+                : null;
     }
 
     private BooleanExpression assetItemIdEq(Long assetItemId) {

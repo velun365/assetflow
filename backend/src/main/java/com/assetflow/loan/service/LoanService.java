@@ -89,16 +89,12 @@ public class LoanService {
 
         loan.approveReturn();
 
-        List<Reservation> reservations =
-                reservationRepository.findByAssetItemIdAndReservationStatusOrderByReservedAtAsc(
+        reservationRepository
+                .findFirstByAssetItemIdAndReservationStatusOrderByReservedAtAscIdAsc(
                         assetItem.getId(),
                         ReservationStatus.WAITING
-                );
-
-        if (!reservations.isEmpty()) {
-            Reservation reservation = reservations.get(0);
-            reservation.ready();
-        }
+                )
+                .ifPresent(Reservation::ready);
 
         assetItem.returnAsset();
 
@@ -110,23 +106,23 @@ public class LoanService {
                 loan.getReturnDate()
         );
     }
+
     private void completeReadyReservation(Member member, AssetItem assetItem) {
-        List<Reservation> reservations = getReadyReservationsByAsset(assetItem);
-        if (!reservations.isEmpty()) {
-            Reservation reservation = reservations.get(0);
-            if (!reservation.getMember().getId().equals(member.getId())) {
-                throw new IllegalStateException("해당 요청자는 예약자가 아닙니다.");
-            }
-            reservation.completed();
-        }
+        reservationRepository
+                .findFirstByAssetItemIdAndReservationStatusOrderByReservedAtAscIdAsc(
+                        assetItem.getId(),
+                        ReservationStatus.READY
+                )
+                .ifPresent(reservation -> {
+                    if (!reservation.getMember().getId().equals(member.getId())) {
+                        throw new IllegalStateException(
+                                "해당 요청자는 예약자가 아닙니다."
+                        );
+                    }
+
+                    reservation.completed();
+                });
     }
-
-    private List<Reservation> getReadyReservationsByAsset(AssetItem assetItem) {
-        return reservationRepository.findByAssetItemIdAndReservationStatusOrderByReservedAtAsc(
-                assetItem.getId(), ReservationStatus.READY);
-    }
-
-
 
     //전체 조회
     public List<LoanListResponse> listAll() {
@@ -150,11 +146,15 @@ public class LoanService {
     }
 
     public List<MyLoanListResponse> findLoansByMember(Long memberId) {
-        return loanRepository.findByMemberId(memberId).stream()
+        List<Loan> loans = loanRepository.findByMemberId(memberId);
+
+        return loans.stream()
                 .map(loan -> new MyLoanListResponse(
                         loan.getId(),
                         loan.getLoanStatus(),
                         loan.getAssetItem().getId(),
+                        loan.getAssetItem().getAsset().getName(),
+                        loan.getAssetItem().getSerialNumber(),
                         loan.getLoanDate(),
                         loan.getDueDate(),
                         loan.getReturnDate()

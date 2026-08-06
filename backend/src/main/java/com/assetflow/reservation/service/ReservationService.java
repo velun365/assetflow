@@ -84,7 +84,11 @@ public class ReservationService {
         return loanRepository.existsByMemberIdAndAssetItemIdAndLoanStatus(
                 member.getId(),
                 assetItem.getId(),
-                LoanStatus.RENTED
+                List.of(
+                        LoanStatus.RENTED,
+                        LoanStatus.OVERDUE,
+                        LoanStatus.RETURN_REQUESTED
+                )
         );
     }
 
@@ -121,10 +125,22 @@ public class ReservationService {
     @Transactional
     public void cancelReservation(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new IllegalStateException("존재 하지 않는 예약입니다."));
+                .orElseThrow(() ->
+                        new IllegalStateException("존재하지 않는 예약입니다."));
+
+        ReservationStatus previousStatus =
+                reservation.getReservationStatus();
 
         reservation.cancel();
 
+        if (previousStatus == ReservationStatus.READY) {
+            reservationRepository
+                    .findFirstByAssetItemIdAndReservationStatusOrderByReservedAtAscIdAsc(
+                            reservation.getAssetItem().getId(),
+                            ReservationStatus.WAITING
+                    )
+                    .ifPresent(Reservation::ready);
+        }
     }
 
     public Page<ReservationSearchResponse> searchReservation(ReservationSearchCondition condition, Pageable pageable) {

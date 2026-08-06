@@ -19,6 +19,6 @@ public interface LoanRepository extends JpaRepository<Loan, Long>, LoanRepositor
     boolean existsByMemberIdAndAssetItemIdAndLoanStatus(
             Long memberId,
             Long assetItemId,
-            LoanStatus loanStatus
+            List<LoanStatus> loanStatuses
     );
 }

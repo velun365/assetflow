@@ -1,41 +1,120 @@
 import { useEffect, useState } from "react";
-import { fetchAssetItems } from "../api/fetchAssetItems";
 
 const LoansPage = () => {
-  const [assetItems, setAssetItems] = useState([]);
+  console.log("LoansPage 렌더링됨");
+  const memberId = 1;
+
+  const [loans, setLoans] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadAssetItems = async () => {
+    console.log("대여 목록 useEffect 실행");
+
+    const loadLoans = async () => {
       try {
-        const data = await fetchAssetItems();
-        setAssetItems(data);
+        const response = await fetch(`/api/loans/members/${memberId}`);
+
+        if (!response.ok) {
+          throw new Error("내 대여 목록 조회에 실패했습니다.");
+        }
+
+        const data = await response.json();
+        console.log("회원별 대여 응답:", data);
+        setLoans(data);
       } catch (error) {
         setError(error.message);
       }
     };
 
-    loadAssetItems();
+    loadLoans();
   }, []);
 
-  const deleteAssetItem = async (assetItemId) => {
+  const requestReturn = async (loanId) => {
+    const confirmed = window.confirm("반납을 요청하시겠습니까?");
+
+    if (!confirmed) {
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/asset-items/${assetItemId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/loans/${loanId}/return-request?memberId=${memberId}`,
+        {
+          method: "POST",
+        },
+      );
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error("자산 아이템 품목 조회에 실패했습니다.");
+        throw new Error(data.message || "반납 요청에 실패했습니다.");
       }
 
-      setAssetItems(
-        assetItems.filter((assetItem) => assetItem.assetItemId !== assetItemId),
+      setLoans((prevLoans) =>
+        prevLoans.map((loan) =>
+          loan.loanId === loanId
+            ? {
+                ...loan,
+                loanStatus: data.loanStatus,
+              }
+            : loan,
+        ),
       );
     } catch (error) {
       setError(error.message);
     }
   };
-  return <div></div>;
+
+  return (
+    <div>
+      <h1>내 대여 목록</h1>
+
+      {error && <p>{error}</p>}
+
+      {loans.length === 0 && !error ? (
+        <p>대여 내역이 없습니다.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>대여번호</th>
+              <th>자산명</th>
+              <th>시리얼번호</th>
+              <th>대여일</th>
+              <th>반납예정일</th>
+              <th>상태</th>
+              <th>처리</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {loans.map((loan) => (
+              <tr key={loan.loanId}>
+                <td>{loan.loanId}</td>
+                <td>{loan.assetName}</td>
+                <td>{loan.serialNumber}</td>
+                <td>{loan.loanDate}</td>
+                <td>{loan.dueDate}</td>
+                <td>{loan.loanStatus}</td>
+                <td>
+                  {loan.loanStatus === "RENTED" ? (
+                    <button
+                      type="button"
+                      onClick={() => requestReturn(loan.loanId)}
+                    >
+                      반납 요청
+                    </button>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 };
 
 export default LoansPage;

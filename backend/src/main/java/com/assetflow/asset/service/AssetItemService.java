@@ -67,4 +67,19 @@ public class AssetItemService {
 
         assetItem.dispose();
     }
+
+    public List<AssetItemResponse> getAssetItemsByAsset(Long assetId) {
+        List<AssetItem> assetItems = assetItemRepository.findByAssetId(assetId);
+        return assetItems.stream()
+                .map(assetItem -> new AssetItemResponse(
+                        assetItem.getId(),
+                        assetItem.getSerialNumber(),
+                        assetItem.getLocation(),
+                        assetItem.getAssetItemStatus(),
+                        assetItem.getAsset().getId(),
+                        assetItem.getAsset().getName()
+                ))
+                .toList();
+
+    }
 }

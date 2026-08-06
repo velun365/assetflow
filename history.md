@@ -817,3 +817,41 @@ AssetItem 검색 기능 추가
 ```text
 Cannot read properties of null (reading 'assetItems')
 ```
+
+## 2026-08-05 ~ 2026-08-06
+
+## 예약 대기열 우선순위 및 취소 로직 보완
+
+### 구현 내용
+
+- 예약 시각을 `LocalDate`에서 `LocalDateTime`으로 변경
+- 예약 우선순위 조회를 전체 목록 조회 방식에서 단건 조회 방식으로 개선
+  - `findFirstByAssetItemIdAndReservationStatusOrderByReservedAtAscIdAsc`
+- 동일 예약 시각에서는 예약 ID 오름차순으로 우선순위 보완
+- 관리자 반납 승인 시 가장 빠른 `WAITING` 예약을 `READY`로 승격
+- `READY` 예약자가 대여하면 예약 상태를 `COMPLETED`로 변경
+- `READY` 예약 취소 시 다음 `WAITING` 예약을 자동으로 `READY`로 승격
+- `WAITING` 예약 취소 시 다른 대기 예약의 상태를 유지
+- 자기 자산 예약 차단 범위를 활성 대여 상태 전체로 확장
+  - `RENTED`
+  - `OVERDUE`
+  - `RETURN_REQUESTED`
+
+### 테스트
+
+- `READY` 예약 취소 시 다음 `WAITING` 예약이 `READY`로 변경되는지 검증
+- `WAITING` 예약 취소 시 다른 `WAITING` 예약들이 유지되는지 검증
+
+### 개선 전
+
+- 조건에 맞는 예약 전체를 `List`로 조회한 뒤 `get(0)`으로 첫 예약 선택
+- 예약 날짜가 `LocalDate`라 같은 날 예약의 정확한 우선순위가 불명확
+- `READY` 예약 취소 후 다음 대기자가 승격되지 않음
+- 자기 예약 차단 시 `RENTED` 상태만 검사
+
+### 개선 후
+
+- DB에서 우선순위가 가장 높은 예약 한 건만 `Optional`로 조회
+- 예약 시각과 ID를 기준으로 대기 순서를 결정
+- 우선 예약자가 취소해도 다음 대기자의 우선권 유지
+- 연체 및 반납 요청 상태도 활성 대여로 판단해 자기 예약 차단

@@ -102,13 +102,16 @@ public class ReservationRepositoryImpl implements ReservationRepositoryCustom {
 
     private BooleanExpression reservationDateGoe(LocalDate reserveAtFrom) {
         return reserveAtFrom != null
-                ? reservation.reservedAt.goe(reserveAtFrom)
+                ? reservation.reservedAt.goe(reserveAtFrom.atStartOfDay())
                 : null;
     }
 
+
     private BooleanExpression reservationDateLoe(LocalDate reserveAtTo) {
         return reserveAtTo != null
-                ? reservation.reservedAt.loe(reserveAtTo)
+                ? reservation.reservedAt.lt(
+                reserveAtTo.plusDays(1).atStartOfDay()
+        )
                 : null;
     }
 }

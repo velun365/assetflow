@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -29,7 +30,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus reservationStatus;
 
-    private LocalDate reservedAt;
+    private LocalDateTime reservedAt;
 
     public void changeMember(Member member) {
         this.member = member;
@@ -45,7 +46,7 @@ public class Reservation {
         changeMember(member);
         changeAssetItem(assetItem);
         this.reservationStatus = ReservationStatus.WAITING;
-        reservedAt = LocalDate.now();
+        reservedAt = LocalDateTime.now();
     }
 
     public void cancel() {

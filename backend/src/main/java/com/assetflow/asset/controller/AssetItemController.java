@@ -26,6 +26,13 @@ public class AssetItemController {
        return assetItemService.createAssetItem(request);
     }
 
+    @GetMapping("/{assetId}")
+    public List<AssetItemResponse> getAssetItemsByAsset(
+            @PathVariable Long assetId
+    ) {
+        return assetItemService.getAssetItemsByAsset(assetId);
+    }
+
     @DeleteMapping("/{assetItemId}")
     public void deleteAssetItem(@PathVariable Long assetItemId){
        assetItemService.deleteAssetItem(assetItemId);
