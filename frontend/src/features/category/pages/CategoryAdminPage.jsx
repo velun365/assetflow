@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
+import { AuthContext } from "../../auth/context/AuthContext";
 
 function CategoryAdminPage() {
   const [categories, setCategories] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -21,9 +24,14 @@ function CategoryAdminPage() {
       });
   }, []);
 
-  const handleDelete = (categoryId) => {
+  const handleDelete = async (categoryId) => {
+    const csrfToken = await getCsrfToken();
+
     fetch(`/api/categories/${categoryId}`, {
       method: "DELETE",
+      headers: {
+        "X-XSRF-TOKEN": csrfToken,
+      },
     })
       .then((response) => {
         if (!response.ok) {
@@ -37,19 +45,19 @@ function CategoryAdminPage() {
         console.error(error);
       });
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const csrfToken = await getCsrfToken();
+
     fetch("/api/categories", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-XSRF-TOKEN": csrfToken,
       },
       body: JSON.stringify({ name: categoryName }),
     })
       .then(async (response) => {
         const data = await response.json();
-        console.log("상태코드 : " + response.status);
-        console.log("응답데이터 : " + data);
-
         if (!response.ok) {
           throw new Error(data.message || "카테고리 등록 실패");
         }
@@ -71,23 +79,34 @@ function CategoryAdminPage() {
     }
   };
   return (
-    <div>
-      <h1>카테고리 목록</h1>
+    <div className="page">
+      <div className="page-heading"><div><h1>카테고리 관리</h1><p>자산을 분류하는 카테고리를 등록하고 관리합니다.</p></div></div>
+      <div className="category-layout">
+        <section className="card">
+          <div className="card__header"><h2>카테고리 목록</h2></div>
+          <div className="category-list">
       {categories.map((category) => (
-        <div key={category.id}>
+        <div className="category-row" key={category.id}>
           <p>{category.name}</p>
-          <button
-            onClick={() => {
-              handleDelete(category.id);
-            }}
-          >
-            삭제
-          </button>
+          {user?.role === "ADMIN" && (
+            <button
+              type="button"
+              className="btn--danger"
+              onClick={() => {
+                handleDelete(category.id);
+              }}
+            >
+              삭제
+            </button>
+          )}
         </div>
       ))}
-      <div>
-        <p>카테고리명</p>
-        <label htmlFor="category_name"></label>
+      {categories.length === 0 && <p className="empty-state">등록된 카테고리가 없습니다.</p>}
+          </div>
+        </section>
+      <section className="card card--padded">
+        <div className="form-field">
+        <label htmlFor="category_name">카테고리명</label>
         <input
           type="text"
           id="category_name"
@@ -98,13 +117,18 @@ function CategoryAdminPage() {
           onKeyDown={onKeyDownKeyword}
           placeholder="추가할 카테고리를 입력하세요"
         />
-        <button
+        </div>
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
+        <div className="form-actions"><button
+          type="button"
           onClick={() => {
             handleSubmit();
           }}
         >
           등록
         </button>
+        </div>
+      </section>
       </div>
     </div>
   );

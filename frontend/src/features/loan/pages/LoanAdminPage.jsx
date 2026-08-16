@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import StatusBadge from "../../../shared/components/StatusBadge";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
 
 const LoanAdminPage = () => {
   const [loans, setLoans] = useState([]);
@@ -67,15 +69,37 @@ const LoanAdminPage = () => {
   };
 
   useEffect(() => {
-    loadLoans(0);
+    fetch("/api/loans/search?page=0&size=10")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("대여 조회에 실패했습니다.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setLoans(data.content);
+        setPageInfo({
+          number: data.number,
+          totalPages: data.totalPages,
+          first: data.first,
+          last: data.last,
+        });
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
   }, []);
 
   const handleApproveReturn = async (loanId) => {
     try {
       setError("");
 
+      const csrfToken = await getCsrfToken();
       const response = await fetch(`/api/loans/${loanId}/return-approve`, {
         method: "POST",
+        headers: {
+          "X-XSRF-TOKEN": csrfToken,
+        },
       });
 
       if (!response.ok) {
@@ -147,11 +171,13 @@ const LoanAdminPage = () => {
   };
 
   return (
-    <div>
-      <h1>전체 대여 관리</h1>
+    <div className="page">
+      <div className="page-heading"><div><h1>전체 대여 관리</h1><p>대여 상태를 검색하고 접수된 반납 요청을 승인합니다.</p></div></div>
 
-      <div>
+      <div className="toolbar">
+        <div className="toolbar__group toolbar__group--grow">
         <select
+          aria-label="대여 검색 조건"
           value={searchType}
           onChange={(event) => setSearchType(event.target.value)}
         >
@@ -160,6 +186,7 @@ const LoanAdminPage = () => {
         </select>
 
         <input
+          aria-label="대여 검색어"
           type={searchType === "assetItemId" ? "number" : "text"}
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
@@ -170,8 +197,10 @@ const LoanAdminPage = () => {
               : "자산품목 번호를 입력하세요"
           }
         />
+        </div>
 
         <select
+          aria-label="대여 상태"
           value={loanStatus}
           onChange={(event) => setLoanStatus(event.target.value)}
         >
@@ -182,7 +211,7 @@ const LoanAdminPage = () => {
           <option value="RETURNED">반납 완료</option>
         </select>
 
-        <label>
+        <label className="toolbar__date">
           대여일 시작
           <input
             type="date"
@@ -191,7 +220,7 @@ const LoanAdminPage = () => {
           />
         </label>
 
-        <label>
+        <label className="toolbar__date">
           대여일 종료
           <input
             type="date"
@@ -204,17 +233,18 @@ const LoanAdminPage = () => {
           검색
         </button>
 
-        <button type="button" onClick={handleReset}>
+        <button className="btn--secondary" type="button" onClick={handleReset}>
           초기화
         </button>
       </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
+      <div className="table-card">
       {loans.length === 0 && !error ? (
-        <p>대여 내역이 없습니다.</p>
+        <p className="empty-state">대여 내역이 없습니다.</p>
       ) : (
-        <table>
+        <div className="table-scroll"><table className="data-table">
           <thead>
             <tr>
               <th>대여번호</th>
@@ -233,13 +263,13 @@ const LoanAdminPage = () => {
             {loans.map((loan) => (
               <tr key={loan.loanId}>
                 <td>{loan.loanId}</td>
-                <td>{loan.memberName}</td>
+                <td className="data-table__primary">{loan.memberName}</td>
                 <td>{loan.assetName}</td>
                 <td>{loan.assetItemId}</td>
                 <td>{loan.loanDate}</td>
                 <td>{loan.dueDate}</td>
                 <td>{loan.returnDate ?? "미반납"}</td>
-                <td>{loan.loanStatus}</td>
+                <td><StatusBadge status={loan.loanStatus} /></td>
                 <td>
                   {loan.loanStatus === "RETURN_REQUESTED" ? (
                     <button
@@ -255,13 +285,14 @@ const LoanAdminPage = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
 
       {pageInfo.totalPages > 0 && (
-        <div>
+        <div className="pagination">
           <button
             type="button"
+            className="pagination__button"
             disabled={pageInfo.first}
             onClick={() => loadLoans(pageInfo.number - 1)}
           >
@@ -271,6 +302,7 @@ const LoanAdminPage = () => {
           {Array.from({ length: pageInfo.totalPages }).map((_, index) => (
             <button
               type="button"
+              className="pagination__button"
               key={index}
               disabled={pageInfo.number === index}
               onClick={() => loadLoans(index)}
@@ -281,6 +313,7 @@ const LoanAdminPage = () => {
 
           <button
             type="button"
+            className="pagination__button"
             disabled={pageInfo.last}
             onClick={() => loadLoans(pageInfo.number + 1)}
           >
@@ -288,6 +321,7 @@ const LoanAdminPage = () => {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };

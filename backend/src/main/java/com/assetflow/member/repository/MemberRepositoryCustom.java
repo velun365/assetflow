@@ -1,6 +1,5 @@
 package com.assetflow.member.repository;
 
-import com.assetflow.member.Member;
 import com.assetflow.member.dto.MemberSearchCondition;
 import com.assetflow.member.dto.MemberSearchResponse;
 import org.springframework.data.domain.Page;

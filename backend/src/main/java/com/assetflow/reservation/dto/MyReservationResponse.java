@@ -4,16 +4,16 @@ import com.assetflow.reservation.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
 public class MyReservationResponse {
-    private Long id;
-    private Long assetItem;
+
+    private Long reservationId;
+    private Long assetItemId;
+    private String assetName;
+    private String serialNumber;
     private ReservationStatus reservationStatus;
     private LocalDateTime reservedAt;
-
-
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
 
 const AssetItemCreatePage = () => {
   const [assetItem, setAssetItem] = useState({
@@ -31,10 +32,12 @@ const AssetItemCreatePage = () => {
     e.preventDefault();
 
     try {
+      const csrfToken = await getCsrfToken();
       const response = await fetch("/api/asset-items", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          "X-XSRF-TOKEN": csrfToken,
         },
         body: JSON.stringify(assetItem),
       });
@@ -56,12 +59,14 @@ const AssetItemCreatePage = () => {
     });
   };
   return (
-    <div>
-      <h1>자산 아이템 등록</h1>
-      {error && <p>{error}</p>}
-
-      <form onSubmit={handleSubmit}>
+    <div className="page">
+      <div className="page-heading"><div><h1>자산 품목 등록</h1><p>자산에 속하는 개별 품목의 식별 정보를 입력합니다.</p></div></div>
+      <form className="form-card" onSubmit={handleSubmit}>
+        <div className="form-grid">
+        <div className="form-field form-field--full">
+        <label htmlFor="assetId">자산</label>
         <select
+          id="assetId"
           name="assetId"
           value={assetItem.assetId}
           onChange={onChangeAssetItems}
@@ -73,7 +78,8 @@ const AssetItemCreatePage = () => {
             </option>
           ))}
         </select>
-        <div>
+        </div>
+        <div className="form-field">
           <label htmlFor="serialNumber">시리얼 번호</label>
           <input
             type="text"
@@ -84,7 +90,7 @@ const AssetItemCreatePage = () => {
             required
           />
         </div>
-        <div>
+        <div className="form-field">
           <label htmlFor="location">위치</label>
           <input
             type="text"
@@ -95,7 +101,9 @@ const AssetItemCreatePage = () => {
             required
           />
         </div>
-        <button type="submit">등록하기</button>
+        </div>
+        {error && <p className="error-message">{error}</p>}
+        <div className="form-actions"><button type="submit">등록하기</button></div>
       </form>
     </div>
   );

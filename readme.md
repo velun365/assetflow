@@ -14,16 +14,22 @@ AssetFlow는 기업/기관 내부에서 도서, 문서, 장비 등의 자산을 
 - 자산 대여 및 반납 처리
 - 사용자별 대여 이력 조회
 - 관리자용 대여 현황 관리
-- 예약, 연체, 요청 티켓 기능 확장 예정
+- 예약 대기열 및 예약 취소 처리
+- 연체 상태 자동 갱신
+- 사용자 반납 요청 및 관리자 승인
 
 ## 기술 스택
 
 - Java 17
 - Spring Boot 3.5.15
 - Spring Data JPA
+- Spring Security
+- Querydsl
 - MySQL
 - Gradle
 - Lombok
+- React
+- Vite
 
 ## ERD 구조
 👉 [ERD Cloud에서 직접 보기](https://www.erdcloud.com/d/Yf7AwmwtrBS72ohqz)
@@ -41,6 +47,9 @@ AssetFlow는 기업/기관 내부에서 도서, 문서, 장비 등의 자산을 
 - [x] GitHub 저장소 연결
 - [x] 핵심 도메인 엔티티 초안 작성
 - [x] ERD 초안 작성
-- [ ] Repository 구현
-- [ ] 회원가입 API 구현
-- [ ] 대여/반납 API 구현
+- [x] Repository 및 검색 기능 구현
+- [x] 회원가입 및 세션 로그인 구현
+- [x] 역할별 접근 제어 구현
+- [x] 자산 및 자산 품목 관리 구현
+- [x] 대여·반납 요청·승인 구현
+- [x] 예약 생성·조회·취소 구현

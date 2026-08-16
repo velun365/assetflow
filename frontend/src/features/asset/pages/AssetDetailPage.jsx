@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import "./AssetDetailPage.css";
+import StatusBadge from "../../../shared/components/StatusBadge";
 const AssetDetailPage = () => {
   const { assetId } = useParams();
   const [asset, setAsset] = useState(null);
@@ -23,47 +24,35 @@ const AssetDetailPage = () => {
   }, [assetId]);
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="error-message">{error}</p>;
   }
   if (!asset) {
-    return <p>불러오는중...</p>;
+    return <p className="empty-state">불러오는 중...</p>;
   }
   return (
-    <div className="asset-detail-page">
-      <Link to="/admin/assets">목록으로</Link> <br />
-      <h1>자산 상세</h1>
-      <section className="asset-info">
-        <div className="image-box">이미지</div>
-
-        <div className="asset-summary">
-          <h2>{asset.name}</h2>
-
-          <table>
-            <tbody>
-              <tr>
-                <th>카테고리</th>
-                <td>{asset.categoryName}</td>
-                <th>보유수량</th>
-                <td>{asset.totalCount}</td>
-                <th>대여가능</th>
-                <td>{asset.availableCount}</td>
-              </tr>
-
-              <tr>
-                <th>설명</th>
-                <td colSpan="5">{asset.explanation}</td>
-              </tr>
-            </tbody>
-          </table>
+    <div className="page asset-detail-page">
+      <div className="page-heading">
+        <div><h1>자산 상세</h1><p>자산 기본 정보와 소속 품목을 확인합니다.</p></div>
+        <Link className="btn btn--secondary" to="/admin/assets">목록으로</Link>
+      </div>
+      <section className="card detail-hero">
+        <div className="detail-image" aria-label="자산 이미지 영역">AF</div>
+        <div>
+          <h2 className="detail-title">{asset.name}</h2>
+          <dl className="detail-grid">
+            <div><dt>카테고리</dt><dd>{asset.categoryName}</dd></div>
+            <div><dt>보유 수량</dt><dd>{asset.totalCount}</dd></div>
+            <div><dt>대여 가능</dt><dd>{asset.availableCount}</dd></div>
+            <div className="detail-grid__wide"><dt>설명</dt><dd>{asset.explanation || "등록된 설명이 없습니다."}</dd></div>
+          </dl>
         </div>
       </section>
-      <section>
-        <h2>자산 품목 목록</h2>
-
+      <section className="table-card">
+        <div className="card__header"><h2>자산 품목 목록</h2></div>
         {asset.assetItems.length === 0 ? (
-          <p>등록된 자산 품목이 없습니다.</p>
+          <p className="empty-state">등록된 자산 품목이 없습니다.</p>
         ) : (
-          <table>
+          <div className="table-scroll"><table className="data-table">
             <thead>
               <tr>
                 <th>품목번호</th>
@@ -79,11 +68,11 @@ const AssetDetailPage = () => {
                   <td>{assetItem.assetItemId}</td>
                   <td>{assetItem.serialNumber}</td>
                   <td>{assetItem.location}</td>
-                  <td>{assetItem.assetItemStatus}</td>
+                  <td><StatusBadge status={assetItem.assetItemStatus} /></td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </section>
     </div>

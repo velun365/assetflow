@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @AllArgsConstructor
 public class LoanReturnResponse {
-    private Long lonaId;
+    private Long loanId;
     private LoanStatus loanStatus;
     private Long memberId;
     private Long assetItemId;

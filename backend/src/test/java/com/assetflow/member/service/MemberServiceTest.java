@@ -1,6 +1,7 @@
 package com.assetflow.member.service;
 
 import com.assetflow.member.Member;
+import com.assetflow.member.dto.MemberCreateRequest;
 import com.assetflow.member.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
@@ -31,21 +33,32 @@ class MemberServiceTest {
 
     @Test
     public void 중복테스트() {
-        Member member1 = new Member("test01", "test1@test.com", "1234", "홍길동");
+        MemberCreateRequest member1 = createRequest(
+                "test01", "test1@test.com", "test1234", "홍길동"
+        );
+        MemberCreateRequest member2 = createRequest(
+                "test01", "test2@test.com", "test1234", "박길동"
+        );
 
-        Member member2 = new Member("test01", "test2@test.com", "1234", "박길동");
+        memberService.join(member1);
 
-//        memberService.join(member1);
-//        try {
-//            memberService.join(member2);
-//        } catch (IllegalStateException e) {
-//            return;
-//        }
+        Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> memberService.join(member2)
+        );
+    }
 
-//        fail("예외가 발생해야합니다.");
-//
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-//            memberService.join(member2);
-        });
+    private MemberCreateRequest createRequest(
+            String loginId,
+            String email,
+            String password,
+            String name
+    ) {
+        MemberCreateRequest request = new MemberCreateRequest();
+        ReflectionTestUtils.setField(request, "loginId", loginId);
+        ReflectionTestUtils.setField(request, "email", email);
+        ReflectionTestUtils.setField(request, "password", password);
+        ReflectionTestUtils.setField(request, "name", name);
+        return request;
     }
 }

@@ -1,6 +1,5 @@
 package com.assetflow.loan.repository;
 
-import com.assetflow.asset.dto.AssetSearchCondition;
 import com.assetflow.loan.dto.LoanSearchCondition;
 import com.assetflow.loan.dto.LoanSearchResponse;
 import org.springframework.data.domain.Page;

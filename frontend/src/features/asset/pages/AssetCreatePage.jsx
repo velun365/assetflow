@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
 
 const AssetCreatePage = () => {
   const [asset, setAsset] = useState({
@@ -11,25 +12,25 @@ const AssetCreatePage = () => {
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const csrfToken = await getCsrfToken();
+
     fetch("/api/assets", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-XSRF-TOKEN": csrfToken,
       },
       body: JSON.stringify(asset),
     })
       .then(async (response) => {
         const data = await response.json();
-        console.log("상태코드 : " + response.status);
-        console.log("응답데이터 : " + data);
-
         if (!response.ok) {
           throw new Error(data.message || "자산 등록 실패");
         }
         return data;
       })
-      .then((data) => {
+      .then(() => {
         navigate("/admin/assets");
       })
       .catch((error) => {
@@ -60,9 +61,11 @@ const AssetCreatePage = () => {
       });
   }, []);
   return (
-    <div>
-      <h1>자산 등록</h1>
-      <div>
+    <div className="page">
+      <div className="page-heading"><div><h1>자산 등록</h1><p>관리할 자산의 분류와 기본 정보를 입력합니다.</p></div></div>
+      <div className="form-card">
+      <div className="form-grid">
+      <div className="form-field form-field--full">
         <label htmlFor="categoryId">카테고리</label>
         <select
           name="categoryId"
@@ -78,7 +81,7 @@ const AssetCreatePage = () => {
           ))}
         </select>
       </div>
-      <div>
+      <div className="form-field form-field--full">
         <label htmlFor="name">자산명</label>
         <input
           id="name"
@@ -88,7 +91,7 @@ const AssetCreatePage = () => {
           onChange={onChangeAsset}
         />
       </div>
-      <div>
+      <div className="form-field form-field--full">
         <label htmlFor="explanation">설명</label>
         <input
           id="explanation"
@@ -98,9 +101,10 @@ const AssetCreatePage = () => {
           onChange={onChangeAsset}
         />
       </div>
-      <button onClick={handleSubmit}>자산 등록</button>
-
-      {errorMessage && <p>{errorMessage}</p>}
+      </div>
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      <div className="form-actions"><button type="button" onClick={handleSubmit}>자산 등록</button></div>
+      </div>
     </div>
   );
 };

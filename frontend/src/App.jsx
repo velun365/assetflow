@@ -1,6 +1,8 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 
+import LoginPage from "./features/auth/pages/LoginPage";
+
 import AssetAdminPage from "./features/asset/pages/AssetAdminPage";
 import AssetDetailPage from "./features/asset/pages/AssetDetailPage";
 import AssetItemAdminPage from "./features/asset/pages/AssetItemAdminPage";
@@ -14,46 +16,151 @@ import LoanCreatePage from "./features/loan/pages/LoanCreatePage";
 import LoansPage from "./features/loan/pages/LoansPage";
 
 import MemberAdminPage from "./features/member/pages/MemberAdminPage";
-import MemberCreatePage from "./features/member/pages/MemberCreatePage";
+import SignupPage from "./features/member/pages/SignupPage";
 
 import ReservationAdminPage from "./features/reservation/pages/ReservationAdminPage";
 import ReservationCreatePage from "./features/reservation/pages/ReservationCreatePage";
+import ReservationsPage from "./features/reservation/pages/ReservationsPage";
 
 import HomePage from "./features/home/pages/HomePage";
 import Notfound from "./features/Notfound";
+import AppLayout from "./shared/components/AppLayout";
+import ProtectedRoute from "./shared/components/ProtectedRoute";
 
 function App() {
   return (
-    <Routes>
-      {/* Home */}
-      <Route path="/" element={<HomePage />} />
+    <AppLayout>
+      <Routes>
+        {/* 공개 */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
-      {/* Member */}
-      <Route path="/admin/members" element={<MemberAdminPage />} />
-      <Route path="/members/new" element={<MemberCreatePage />} />
+        {/* Member */}
+        <Route
+          path="/admin/members"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <MemberAdminPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Asset */}
-      <Route path="/admin/assets" element={<AssetAdminPage />} />
-      <Route path="/admin/assets/new" element={<AssetCreatePage />} />
-      <Route path="/admin/assets/:assetId" element={<AssetDetailPage />} />
+        {/* Asset */}
+        <Route
+          path="/admin/assets"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <AssetAdminPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/admin/asset-items" element={<AssetItemAdminPage />} />
-      <Route path="/admin/asset-items/new" element={<AssetItemCreatePage />} />
+        <Route
+          path="/admin/assets/new"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <AssetCreatePage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/admin/categories" element={<CategoryAdminPage />} />
+        <Route
+          path="/admin/assets/:assetId"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <AssetDetailPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Loan */}
-      <Route path="/admin/loans" element={<LoanAdminPage />} />
-      <Route path="/loans/new" element={<LoanCreatePage />} />
-      <Route path="/loans" element={<LoansPage />} />
+        <Route
+          path="/admin/asset-items"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <AssetItemAdminPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Reservation */}
-      <Route path="/admin/reservations" element={<ReservationAdminPage />} />
-      <Route path="/reservations/new" element={<ReservationCreatePage />} />
+        <Route
+          path="/admin/asset-items/new"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <AssetItemCreatePage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Not Found */}
-      <Route path="*" element={<Notfound />} />
-    </Routes>
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <CategoryAdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Loan */}
+        <Route
+          path="/admin/loans"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <LoanAdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/loans/new"
+          element={
+            <ProtectedRoute>
+              <LoanCreatePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/loans"
+          element={
+            <ProtectedRoute>
+              <LoansPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Reservation */}
+        <Route
+          path="/admin/reservations"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <ReservationAdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reservations/new"
+          element={
+            <ProtectedRoute>
+              <ReservationCreatePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reservations"
+          element={
+            <ProtectedRoute>
+              <ReservationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Not Found */}
+        <Route path="*" element={<Notfound />} />
+      </Routes>
+    </AppLayout>
   );
 }
 

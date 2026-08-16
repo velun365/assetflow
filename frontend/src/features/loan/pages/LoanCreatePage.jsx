@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import StatusBadge from "../../../shared/components/StatusBadge";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
+
 function LoanCreatePage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [categoryName, setCategoryName] = useState("");
@@ -41,7 +44,7 @@ function LoanCreatePage() {
     searchAsset();
   }, []);
   if (error) {
-    return <p>{error}</p>;
+    return <p className="error-message">{error}</p>;
   }
 
   const filteredAssets = assets.filter((asset) => {
@@ -73,20 +76,20 @@ function LoanCreatePage() {
     }
 
     try {
+      const csrfToken = await getCsrfToken();
       const response = await fetch("/api/loans", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken,
+        },
         body: JSON.stringify({
-          memberId: 1,
           assetItemId: assetItem.assetItemId,
         }),
       });
       if (!response.ok) {
         throw new Error("대여에 실패했습니다.");
       }
-      const data = await response.json();
-      console.log(data);
-
       window.alert("대여가 완료되었습니다.");
       navigate("/loans");
     } catch (error) {
@@ -107,71 +110,105 @@ function LoanCreatePage() {
   };
 
   return (
-    <div>
-      <h1>대여신청</h1>
-      <section className=""></section>
-      <h2>카테고리 & 자산검색</h2>
-      <section className="">
+    <div className="page">
+      <div className="page-heading">
         <div>
-          <select
-            name={categoryName}
-            value={categoryName}
-            onChange={onChangeCategoryName}
-          >
-            <option value="">전체 카테고리</option>
-            {categories.map((list) => (
-              <option key={list.id} value={list.name}>
-                {list.name}
-              </option>
-            ))}
-          </select>
+          <h1>대여 신청</h1>
+          <p>대여할 자산을 검색하고 사용 가능한 품목을 선택합니다.</p>
         </div>
-        <div>
-          <input type="text" value={searchKeyword} onChange={onChangeKeyword} />
-        </div>
-      </section>
-      <section className="">
+      </div>
+      {selectAsset === null && (
+        <section className="toolbar">
+          <div className="toolbar__group toolbar__group--grow">
+            <select
+              aria-label="카테고리"
+              value={categoryName}
+              onChange={onChangeCategoryName}
+            >
+              <option value="">전체 카테고리</option>
+              {categories.map((list) => (
+                <option key={list.id} value={list.name}>
+                  {list.name}
+                </option>
+              ))}
+            </select>
+            <input
+              aria-label="자산 검색어"
+              placeholder="자산명을 입력하세요"
+              type="text"
+              value={searchKeyword}
+              onChange={onChangeKeyword}
+            />
+          </div>
+        </section>
+      )}
+      <section>
         {selectAsset === null ? (
-          <div className="assetsBox">
+          <div className="asset-grid">
             {filteredAssets.map((asset) => (
               <div
+                className="asset-choice-card"
                 key={asset.assetId}
                 onClick={() => {
                   chooseAsset(asset);
                 }}
               >
                 <h3>{asset.name}</h3>
-                <p>분류 : {asset.categoryName}</p>
-                <p>보유 : {asset.totalCount}</p>
-                <p>대여가능 : {asset.availableCount}</p>
+                <p>{asset.categoryName}</p>
+                <div className="asset-choice-card__meta">
+                  <span className="meta-chip">보유 {asset.totalCount}</span>
+                  <span className="meta-chip">
+                    대여 가능 {asset.availableCount}
+                  </span>
+                </div>
               </div>
             ))}
+            {filteredAssets.length === 0 && (
+              <p className="empty-state card">조건에 맞는 자산이 없습니다.</p>
+            )}
           </div>
         ) : (
-          <div>
-            <button type="button" onClick={goBackToAssets}>
-              자산 다시 선택
-            </button>
-            {assetItems.map((assetItem) => {
-              const isAvailable = assetItem.assetItemStatus === "AVAILABLE";
-              return (
-                <div key={assetItem.assetItemId}>
-                  <p>시리얼번호: {assetItem.serialNumber}</p>
-                  <p>위치: {assetItem.location}</p>
-                  <p>상태: {assetItem.assetItemStatus}</p>
-
-                  <button
-                    type="button"
-                    disabled={!isAvailable}
-                    onClick={() => {
-                      loanAssetItem(assetItem);
-                    }}
+          <div className="page">
+            <div className="selection-header">
+              <h2>{selectAsset.name} 품목 선택</h2>
+              <button
+                className="btn--secondary"
+                type="button"
+                onClick={goBackToAssets}
+              >
+                자산 다시 선택
+              </button>
+            </div>
+            <div className="asset-grid">
+              {assetItems.map((assetItem) => {
+                const isAvailable = assetItem.assetItemStatus === "AVAILABLE";
+                return (
+                  <div
+                    className="asset-choice-card"
+                    key={assetItem.assetItemId}
                   >
-                    {isAvailable ? "대여 선택" : "대여 불가"}
-                  </button>
-                </div>
-              );
-            })}
+                    <h3>{assetItem.serialNumber}</h3>
+                    <p>위치: {assetItem.location}</p>
+                    <p>
+                      <StatusBadge status={assetItem.assetItemStatus} />
+                    </p>
+
+                    <button
+                      type="button"
+                      disabled={!isAvailable}
+                      onClick={() => {
+                        loanAssetItem(assetItem);
+                      }}
+                    >
+                      {isAvailable ? "대여 선택" : "대여 불가"}
+                    </button>
+                  </div>
+                );
+              })}
+              {assetItems.length === 0 && (
+                <p className="empty-state card">등록된 자산 품목이 없습니다.</p>
+              )}
+            </div>
           </div>
         )}
       </section>

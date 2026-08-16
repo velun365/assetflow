@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StatusBadge from "../../../shared/components/StatusBadge";
 
 const ReservationAdminPage = () => {
   const [reservations, setReservations] = useState([]);
@@ -56,7 +57,25 @@ const ReservationAdminPage = () => {
   };
 
   useEffect(() => {
-    loadReservations(0);
+    fetch("/api/reservations/search?page=0&size=10")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("예약 조회에 실패했습니다.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setReservations(data.content);
+        setPageInfo({
+          number: data.number,
+          totalPages: data.totalPages,
+          first: data.first,
+          last: data.last,
+        });
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
   }, []);
 
   const handleSearch = () => {
@@ -70,11 +89,13 @@ const ReservationAdminPage = () => {
   };
 
   return (
-    <div>
-      <h1>예약 현황</h1>
+    <div className="page">
+      <div className="page-heading"><div><h1>예약 현황</h1><p>자산별 예약 순서와 처리 상태를 조회합니다.</p></div></div>
 
-      <div>
+      <div className="toolbar">
+        <div className="toolbar__group toolbar__group--grow">
         <select
+          aria-label="예약 검색 조건"
           value={searchType}
           onChange={(event) => setSearchType(event.target.value)}
         >
@@ -83,14 +104,17 @@ const ReservationAdminPage = () => {
         </select>
 
         <input
+          aria-label="예약 검색어"
           type="text"
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="검색어"
         />
+        </div>
 
         <select
+          aria-label="예약 상태"
           value={reservationStatus}
           onChange={(event) => setReservationStatus(event.target.value)}
         >
@@ -106,12 +130,13 @@ const ReservationAdminPage = () => {
         </button>
       </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
+      <div className="table-card">
       {reservations.length === 0 && !error ? (
-        <p>예약 내역이 없습니다.</p>
+        <p className="empty-state">예약 내역이 없습니다.</p>
       ) : (
-        <table>
+        <div className="table-scroll"><table className="data-table">
           <thead>
             <tr>
               <th>예약번호</th>
@@ -126,20 +151,21 @@ const ReservationAdminPage = () => {
             {reservations.map((reservation) => (
               <tr key={reservation.reservationId}>
                 <td>{reservation.reservationId}</td>
-                <td>{reservation.memberName}</td>
+                <td className="data-table__primary">{reservation.memberName}</td>
                 <td>{reservation.assetName}</td>
                 <td>{reservation.reservedAt}</td>
-                <td>{reservation.reservationStatus}</td>
+                <td><StatusBadge status={reservation.reservationStatus} /></td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
 
       {pageInfo.totalPages > 0 && (
-        <div>
+        <div className="pagination">
           <button
             type="button"
+            className="pagination__button"
             disabled={pageInfo.first}
             onClick={() => loadReservations(pageInfo.number - 1)}
           >
@@ -149,6 +175,7 @@ const ReservationAdminPage = () => {
           {Array.from({ length: pageInfo.totalPages }).map((_, index) => (
             <button
               type="button"
+              className="pagination__button"
               key={index}
               disabled={pageInfo.number === index}
               onClick={() => loadReservations(index)}
@@ -159,6 +186,7 @@ const ReservationAdminPage = () => {
 
           <button
             type="button"
+            className="pagination__button"
             disabled={pageInfo.last}
             onClick={() => loadReservations(pageInfo.number + 1)}
           >
@@ -166,6 +194,7 @@ const ReservationAdminPage = () => {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };

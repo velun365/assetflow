@@ -5,7 +5,6 @@ import com.assetflow.asset.dto.CategoryCreateRequest;
 import com.assetflow.asset.dto.CategoryCreateResponse;
 import com.assetflow.asset.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -27,14 +27,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class LoanService {
     private final LoanRepository loanRepository;
-    private final MemberRepository memberRepository;
     private final AssetItemRepository assetItemRepository;
     private final ReservationRepository reservationRepository;
 
     @Transactional
-    public LoanCreateResponse createLoan(LoanCreateRequest request) {
-        Member member = memberRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+    public LoanCreateResponse createLoan(Member member,LoanCreateRequest request) {
         AssetItem assetItem = assetItemRepository.findById(request.getAssetItemId())
                 .orElseThrow(() -> new IllegalStateException("존재 하지 않는 자산 품목입니다."));
 
@@ -52,7 +49,7 @@ public class LoanService {
             return new LoanCreateResponse(
                     loan.getId(),
                     loan.getLoanStatus(),
-                    request.getMemberId(),
+                    member.getId(),
                     request.getAssetItemId(),
                     loan.getLoanDate(),
                     loan.getDueDate(),
@@ -62,12 +59,12 @@ public class LoanService {
         throw new IllegalStateException("대출이 불가 합니다.");
     }
     @Transactional
-    public LoanReturnRequestResponse requestReturn(Long loanId, Long memberId) {
+    public LoanReturnRequestResponse requestReturn(Long loanId, Member member) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() ->
                         new IllegalStateException("해당 대여 기록이 존재하지 않습니다."));
 
-        if (!loan.getMember().getId().equals(memberId)) {
+        if (!loan.getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("본인의 대여만 반납 요청할 수 있습니다.");
         }
 

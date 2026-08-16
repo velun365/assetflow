@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-
+import StatusBadge from "../../../shared/components/StatusBadge";
+import { AuthContext } from "../../auth/context/AuthContext";
+import { getCsrfToken } from "../../../shared/api/csrfFetch";
 const ReservationCreatePage = () => {
-  const memberId = 2; // 로그인 구현 전 임시값
-
   const [searchKeyword, setSearchKeyword] = useState("");
   const [categoryName, setCategoryName] = useState("");
 
@@ -15,6 +15,7 @@ const ReservationCreatePage = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -93,13 +94,15 @@ const ReservationCreatePage = () => {
     setError("");
 
     try {
+      const csrfToken = await getCsrfToken();
       const response = await fetch("/api/reservations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-XSRF-TOKEN": csrfToken,
         },
         body: JSON.stringify({
-          memberId,
+          memberId: user.memberId,
           assetItemId: assetItem.assetItemId,
         }),
       });
@@ -112,9 +115,7 @@ const ReservationCreatePage = () => {
 
       window.alert("예약이 완료되었습니다.");
 
-      // 사용자용 예약 목록 페이지를 만들면
-      // navigate("/reservations")로 변경
-      navigate("/");
+      navigate("/reservations");
     } catch (error) {
       setError(error.message);
     }
@@ -127,87 +128,113 @@ const ReservationCreatePage = () => {
   };
 
   return (
-    <div>
-      <h1>예약 신청</h1>
+    <div className="page">
+      <div className="page-heading">
+        <div>
+          <h1>예약 신청</h1>
+          <p>현재 대여 중인 자산 품목을 검색하고 예약합니다.</p>
+        </div>
+      </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
       {selectedAsset === null ? (
         <>
-          <h2>카테고리 & 자산 검색</h2>
+          <section className="toolbar">
+            <div className="toolbar__group toolbar__group--grow">
+              <select
+                aria-label="카테고리"
+                value={categoryName}
+                onChange={(event) => setCategoryName(event.target.value)}
+              >
+                <option value="">전체 카테고리</option>
 
-          <section>
-            <select
-              value={categoryName}
-              onChange={(event) => setCategoryName(event.target.value)}
-            >
-              <option value="">전체 카테고리</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
 
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="text"
-              value={searchKeyword}
-              onChange={(event) => setSearchKeyword(event.target.value)}
-              placeholder="자산명을 입력하세요"
-            />
+              <input
+                aria-label="자산 검색어"
+                type="text"
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+                placeholder="자산명을 입력하세요"
+              />
+            </div>
           </section>
 
-          <section className="assetsBox">
+          <section className="asset-grid">
             {filteredAssets.length === 0 ? (
-              <p>조건에 맞는 자산이 없습니다.</p>
+              <p className="empty-state card">조건에 맞는 자산이 없습니다.</p>
             ) : (
               filteredAssets.map((asset) => (
-                <div key={asset.assetId} onClick={() => chooseAsset(asset)}>
+                <div
+                  className="asset-choice-card"
+                  key={asset.assetId}
+                  onClick={() => chooseAsset(asset)}
+                >
                   <h3>{asset.name}</h3>
-                  <p>분류: {asset.categoryName}</p>
-                  <p>보유: {asset.totalCount}</p>
-                  <p>대여 가능: {asset.availableCount}</p>
-                  <p>예약 대상: {asset.totalCount - asset.availableCount}</p>
+                  <p>{asset.categoryName}</p>
+                  <div className="asset-choice-card__meta">
+                    <span className="meta-chip">보유 {asset.totalCount}</span>
+                    <span className="meta-chip">
+                      예약 대상 {asset.totalCount - asset.availableCount}
+                    </span>
+                  </div>
                 </div>
               ))
             )}
           </section>
         </>
       ) : (
-        <section>
-          <button type="button" onClick={goBackToAssets}>
-            자산 다시 선택
-          </button>
-
-          <h2>{selectedAsset.name} 품목 선택</h2>
+        <section className="page">
+          <div className="selection-header">
+            <h2>{selectedAsset.name} 품목 선택</h2>
+            <button
+              className="btn--secondary"
+              type="button"
+              onClick={goBackToAssets}
+            >
+              자산 다시 선택
+            </button>
+          </div>
 
           {assetItems.length === 0 ? (
-            <p>등록된 자산 품목이 없습니다.</p>
+            <p className="empty-state card">등록된 자산 품목이 없습니다.</p>
           ) : (
-            assetItems.map((assetItem) => {
-              const isReservable = assetItem.assetItemStatus === "RENTED";
+            <div className="asset-grid">
+              {assetItems.map((assetItem) => {
+                const isReservable = assetItem.assetItemStatus === "RENTED";
 
-              return (
-                <div key={assetItem.assetItemId}>
-                  <p>시리얼번호: {assetItem.serialNumber}</p>
-                  <p>위치: {assetItem.location}</p>
-                  <p>상태: {assetItem.assetItemStatus}</p>
-
-                  <button
-                    type="button"
-                    disabled={!isReservable}
-                    onClick={() => reserveAssetItem(assetItem)}
+                return (
+                  <div
+                    className="asset-choice-card"
+                    key={assetItem.assetItemId}
                   >
-                    {isReservable
-                      ? "예약하기"
-                      : assetItem.assetItemStatus === "AVAILABLE"
-                        ? "현재 대여 가능"
-                        : "예약 불가"}
-                  </button>
-                </div>
-              );
-            })
+                    <h3>{assetItem.serialNumber}</h3>
+                    <p>위치: {assetItem.location}</p>
+                    <p>
+                      <StatusBadge status={assetItem.assetItemStatus} />
+                    </p>
+
+                    <button
+                      type="button"
+                      disabled={!isReservable}
+                      onClick={() => reserveAssetItem(assetItem)}
+                    >
+                      {isReservable
+                        ? "예약하기"
+                        : assetItem.assetItemStatus === "AVAILABLE"
+                          ? "현재 대여 가능"
+                          : "예약 불가"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </section>
       )}

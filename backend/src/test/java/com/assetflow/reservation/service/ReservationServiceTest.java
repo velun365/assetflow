@@ -141,7 +141,7 @@ class ReservationServiceTest {
         List<MyReservationResponse> byMyReservations = reservationService.findByMyReservations(data.member2.getId());
 
         assertThat(byMyReservations).hasSize(1);
-        assertThat(byMyReservations.get(0).getId()).isEqualTo(reservation1.getId());
+        assertThat(byMyReservations.get(0).getReservationId()).isEqualTo(reservation1.getReservationId());
         assertThat(byMyReservations.get(0).getReservationStatus()).isEqualTo(ReservationStatus.WAITING);
 
     }
@@ -161,7 +161,7 @@ class ReservationServiceTest {
         );
         ReservationCreateResponse reservation1 = reservationService.createReservation(request1);
 
-        reservationService.cancelReservation(reservation1.getId());
+        reservationService.cancelReservation(reservation1.getReservationId());
 
         List<MyReservationResponse> byMyReservations = reservationService.findByMyReservations(reservation1.getMemberId());
         assertThat(byMyReservations.get(0).getReservationStatus()).isEqualTo(ReservationStatus.CANCELED);
@@ -174,7 +174,7 @@ class ReservationServiceTest {
         Long testId = 99L;
         assertThatThrownBy(() -> reservationService.cancelReservation(testId))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("존재 하지 않는 예약입니다.");
+                .hasMessage("존재하지 않는 예약입니다.");
     }
 
     private TestData testReady() {

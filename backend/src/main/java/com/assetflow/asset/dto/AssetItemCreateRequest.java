@@ -1,6 +1,5 @@
 package com.assetflow.asset.dto;
 
-import com.assetflow.asset.AssetItemStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

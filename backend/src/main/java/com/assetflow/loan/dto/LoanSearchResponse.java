@@ -1,7 +1,6 @@
 package com.assetflow.loan.dto;
 
 import com.assetflow.loan.LoanStatus;
-import com.assetflow.member.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

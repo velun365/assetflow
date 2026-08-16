@@ -5,12 +5,14 @@ import com.assetflow.asset.AssetItem;
 import com.assetflow.asset.Category;
 import com.assetflow.loan.Loan;
 import com.assetflow.member.Member;
+import com.assetflow.member.Role;
 import com.assetflow.reservation.Reservation;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,12 @@ public class InitTestData {
         @PersistenceContext
         EntityManager em;
 
+        private final PasswordEncoder passwordEncoder;
+
+        InitTestDataService(PasswordEncoder passwordEncoder) {
+            this.passwordEncoder = passwordEncoder;
+        }
+
         @Transactional
         public void init() {
             // =========================
@@ -39,14 +47,14 @@ public class InitTestData {
             Member member1 = new Member(
                     "user1",
                     "user1@naver.com",
-                    "test1234",
+                    passwordEncoder.encode("test1234"),
                     "홍길동"
             );
 
             Member member2 = new Member(
                     "user2",
                     "user2@naver.com",
-                    "test1234",
+                    passwordEncoder.encode("test1234"),
                     "박길동"
             );
 
@@ -61,12 +69,38 @@ public class InitTestData {
                 Member member = new Member(
                         "user" + i,
                         "user" + i + "@naver.com",
-                        "test1234",
+                        passwordEncoder.encode("test1234"),
                         name
                 );
 
                 em.persist(member);
             }
+
+            Member manager = new Member(
+                    "manager1",
+                    "manager1@assetflow.com",
+                    passwordEncoder.encode("test1234"),
+                    "매니저"
+            );
+            Member admin = new Member(
+                    "admin1",
+                    "admin1@assetflow.com",
+                    passwordEncoder.encode("test1234"),
+                    "관리자"
+            );
+
+            em.persist(manager);
+            em.persist(admin);
+            em.flush();
+
+            em.createQuery("update Member m set m.role = :role where m.id = :id")
+                    .setParameter("role", Role.MANAGER)
+                    .setParameter("id", manager.getId())
+                    .executeUpdate();
+            em.createQuery("update Member m set m.role = :role where m.id = :id")
+                    .setParameter("role", Role.ADMIN)
+                    .setParameter("id", admin.getId())
+                    .executeUpdate();
 
             // =========================
             // 카테고리

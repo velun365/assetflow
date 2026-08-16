@@ -1,5 +1,7 @@
 package com.assetflow.reservation.controller;
 
+import com.assetflow.auth.security.CustomUserDetails;
+import com.assetflow.member.Member;
 import com.assetflow.reservation.dto.MyReservationResponse;
 import com.assetflow.reservation.dto.ReservationCreateRequest;
 import com.assetflow.reservation.dto.ReservationCreateResponse;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,8 +26,16 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ReservationCreateResponse createReservation(@Valid @RequestBody ReservationCreateRequest request) {
-        return reservationService.createReservation(request);
+    public ReservationCreateResponse createReservation(
+            @Valid @RequestBody ReservationCreateRequest request,
+            Authentication authentication
+    ) {
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        Member member = userDetails.getMember();
+
+        return reservationService.createReservation(member, request);
     }
 
     @GetMapping
@@ -32,14 +43,30 @@ public class ReservationController {
         return reservationService.getReservations();
     }
 
-    @GetMapping("/members/{memberId}")
-    public List<MyReservationResponse> findByMyReservations(@PathVariable("memberId") Long memberId) {
-        return reservationService.findByMyReservations(memberId);
+    @GetMapping("/my")
+    public List<MyReservationResponse> findByMyReservations(
+            Authentication authentication
+    ) {
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        Member member = userDetails.getMember();
+
+        return reservationService.findByMyReservations(member.getId());
     }
 
     @PostMapping("/{reservationId}/cancel")
-    public ResponseEntity<Void> cancelReservation(@PathVariable("reservationId") Long reservationId) {
-        reservationService.cancelReservation(reservationId);
+    public ResponseEntity<Void> cancelReservation(
+            @PathVariable Long reservationId,
+            Authentication authentication
+    ) {
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        Member member = userDetails.getMember();
+
+        reservationService.cancelReservation(reservationId, member);
+
         return ResponseEntity.noContent().build();
     }
 

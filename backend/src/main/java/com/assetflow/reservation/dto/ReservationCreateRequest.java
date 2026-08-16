@@ -10,7 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReservationCreateRequest {
         @NotNull
-        private Long memberId;
-        @NotNull
         private Long assetItemId;
 }

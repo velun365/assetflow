@@ -6,10 +6,10 @@ import com.assetflow.member.dto.MemberCreateResponse;
 import com.assetflow.member.dto.MemberSearchCondition;
 import com.assetflow.member.dto.MemberSearchResponse;
 import com.assetflow.member.repository.MemberRepository;
-import com.assetflow.member.repository.MemberRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +21,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public MemberCreateResponse join(MemberCreateRequest request) {
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
         Member member = new Member(
                 request.getLoginId(),
                 request.getEmail(),
-                request.getPassword(),
+                encodedPassword,
                 request.getName());
         validateDuplicateLoginId(member.getLoginId());
         memberRepository.save(member);

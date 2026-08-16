@@ -6,6 +6,8 @@ import com.assetflow.asset.dto.AssetItemResponse;
 import com.assetflow.asset.service.AssetItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +19,8 @@ public class AssetItemController {
     private final AssetItemService assetItemService;
 
     @GetMapping
-    public List<AssetItemResponse> getAllAssetItems() {
-        return assetItemService.getAllAssetItems();
+    public Page<AssetItemResponse> getAllAssetItems(Pageable pageable) {
+        return assetItemService.getAllAssetItems(pageable);
     }
 
     @PostMapping

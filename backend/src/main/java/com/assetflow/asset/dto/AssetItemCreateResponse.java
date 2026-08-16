@@ -1,6 +1,5 @@
 package com.assetflow.asset.dto;
 
-import com.assetflow.asset.Asset;
 import com.assetflow.asset.AssetItemStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

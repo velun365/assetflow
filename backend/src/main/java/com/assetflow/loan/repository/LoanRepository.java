@@ -6,9 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
-
-import static com.assetflow.loan.LoanStatus.*;
 
 public interface LoanRepository extends JpaRepository<Loan, Long>, LoanRepositoryCustom {
     List<Loan> findByMemberId(Long memberId);
@@ -16,7 +13,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long>, LoanRepositor
     List<Loan> findByLoanStatusAndDueDateBeforeAndReturnDateIsNull(
             LoanStatus loanStatus,
             LocalDate today);
-    boolean existsByMemberIdAndAssetItemIdAndLoanStatus(
+    boolean existsByMemberIdAndAssetItemIdAndLoanStatusIn(
             Long memberId,
             Long assetItemId,
             List<LoanStatus> loanStatuses
