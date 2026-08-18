@@ -14,9 +14,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long>,
             Long assetItemId,
             ReservationStatus reservationStatus
     );
-    boolean existsByMemberIdAndAssetItemIdAndReservationStatus(
+    boolean existsByMemberIdAndAssetItemIdAndReservationStatusIn(
             Long memberId,
             Long assetItemId,
+            List<ReservationStatus> reservationStatuses
+    );
+
+    boolean existsByAssetItemIdAndReservationStatus(
+            Long assetItemId,
             ReservationStatus reservationStatus
+
     );
 }

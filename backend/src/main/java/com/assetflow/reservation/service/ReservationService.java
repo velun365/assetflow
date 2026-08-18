@@ -6,6 +6,7 @@ import com.assetflow.asset.repository.AssetItemRepository;
 import com.assetflow.loan.LoanStatus;
 import com.assetflow.loan.repository.LoanRepository;
 import com.assetflow.member.Member;
+import com.assetflow.member.repository.MemberRepository;
 import com.assetflow.reservation.Reservation;
 import com.assetflow.reservation.ReservationStatus;
 import com.assetflow.reservation.dto.MyReservationResponse;
@@ -31,6 +32,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final AssetItemRepository assetItemRepository;
     private final LoanRepository loanRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public ReservationCreateResponse createReservation(
@@ -39,28 +41,30 @@ public class ReservationService {
     ) {
         AssetItem assetItem = assetItemRepository.findById(request.getAssetItemId())
                 .orElseThrow(() -> new IllegalStateException("자산 목록이 존재 하지 않습니다."));
+        Member managedMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new IllegalStateException("회원이 존재하지 않습니다."));
 
         if (assetItem.getAssetItemStatus() == AssetItemStatus.RENTED) {
-            boolean alreadyBorrowed = isAlreadyBorrowed(member, assetItem);
+            boolean alreadyBorrowed = isAlreadyBorrowed(managedMember, assetItem);
             if (alreadyBorrowed) {
                 throw new IllegalStateException("본인이 대여 중인 자산은 예약할 수 없습니다.");
             }
 
-            boolean duplicateReservation = hasActiveReservation(member, assetItem);
+            boolean duplicateReservation = hasActiveReservation(managedMember, assetItem);
 
             if (duplicateReservation) {
                 throw new IllegalStateException("중복 예약은 불가 합니다.");
             }
 
             Reservation reservation = new Reservation(
-                    member, assetItem
+                    managedMember, assetItem
             );
 
             reservationRepository.save(reservation);
 
             return new ReservationCreateResponse(
                     reservation.getId(),
-                    member.getId(),
+                    managedMember.getId(),
                     assetItem.getId(),
                     reservation.getReservationStatus(),
                     reservation.getReservedAt()
@@ -71,17 +75,15 @@ public class ReservationService {
     }
 
     private boolean hasActiveReservation(Member member, AssetItem assetItem) {
-        boolean waiting = reservationRepository.existsByMemberIdAndAssetItemIdAndReservationStatus(
-                member.getId(), assetItem.getId(), ReservationStatus.WAITING
+        return reservationRepository.existsByMemberIdAndAssetItemIdAndReservationStatusIn(
+                member.getId(),
+                assetItem.getId(),
+                List.of(
+                        ReservationStatus.WAITING,
+                        ReservationStatus.READY
+                )
         );
-
-        boolean ready = reservationRepository.existsByMemberIdAndAssetItemIdAndReservationStatus(
-                member.getId(), assetItem.getId(), ReservationStatus.READY
-        );
-
-        return waiting || ready;
     }
-
     private boolean isAlreadyBorrowed(Member member, AssetItem assetItem) {
         return loanRepository.existsByMemberIdAndAssetItemIdAndLoanStatusIn(
                 member.getId(),

@@ -13,4 +13,8 @@ public class AssetItemResponse {
     private AssetItemStatus assetItemStatus;
     private Long assetId;
     private String assetName;
+    private boolean hasReadyReservation;
+    private boolean readyByMe;
+    private boolean borrowedByMe;
+    private boolean reservedByMe;
 }

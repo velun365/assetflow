@@ -1,7 +1,6 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../../../shared/components/StatusBadge";
-import { AuthContext } from "../../auth/context/AuthContext";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
 const ReservationCreatePage = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -15,8 +14,6 @@ const ReservationCreatePage = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -102,7 +99,6 @@ const ReservationCreatePage = () => {
           "X-XSRF-TOKEN": csrfToken,
         },
         body: JSON.stringify({
-          memberId: user.memberId,
           assetItemId: assetItem.assetItemId,
         }),
       });
@@ -207,8 +203,10 @@ const ReservationCreatePage = () => {
           ) : (
             <div className="asset-grid">
               {assetItems.map((assetItem) => {
-                const isReservable = assetItem.assetItemStatus === "RENTED";
-
+                const isReservable =
+                  assetItem.assetItemStatus === "RENTED" &&
+                  !assetItem.borrowedByMe &&
+                  !assetItem.reservedByMe;
                 return (
                   <div
                     className="asset-choice-card"
@@ -217,7 +215,13 @@ const ReservationCreatePage = () => {
                     <h3>{assetItem.serialNumber}</h3>
                     <p>위치: {assetItem.location}</p>
                     <p>
-                      <StatusBadge status={assetItem.assetItemStatus} />
+                      {assetItem.borrowedByMe
+                        ? "내가 대여 중"
+                        : assetItem.reservedByMe
+                          ? "이미 예약 중"
+                          : assetItem.assetItemStatus === "RENTED"
+                            ? "예약 가능"
+                            : "현재 대여 가능"}
                     </p>
 
                     <button
@@ -225,11 +229,15 @@ const ReservationCreatePage = () => {
                       disabled={!isReservable}
                       onClick={() => reserveAssetItem(assetItem)}
                     >
-                      {isReservable
-                        ? "예약하기"
-                        : assetItem.assetItemStatus === "AVAILABLE"
-                          ? "현재 대여 가능"
-                          : "예약 불가"}
+                      {assetItem.borrowedByMe
+                        ? "내가 대여 중"
+                        : assetItem.reservedByMe
+                          ? "이미 예약 중"
+                          : isReservable
+                            ? "예약하기"
+                            : assetItem.assetItemStatus === "AVAILABLE"
+                              ? "현재 대여 가능"
+                              : "예약 불가"}
                     </button>
                   </div>
                 );

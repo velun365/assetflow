@@ -18,4 +18,5 @@ public interface LoanRepository extends JpaRepository<Loan, Long>, LoanRepositor
             Long assetItemId,
             List<LoanStatus> loanStatuses
     );
+
 }

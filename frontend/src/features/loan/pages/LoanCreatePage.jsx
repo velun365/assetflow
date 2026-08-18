@@ -87,8 +87,11 @@ function LoanCreatePage() {
           assetItemId: assetItem.assetItemId,
         }),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("대여에 실패했습니다.");
+        throw new Error(data.message || "대여에 실패했습니다.");
       }
       window.alert("대여가 완료되었습니다.");
       navigate("/loans");
@@ -181,7 +184,14 @@ function LoanCreatePage() {
             </div>
             <div className="asset-grid">
               {assetItems.map((assetItem) => {
-                const isAvailable = assetItem.assetItemStatus === "AVAILABLE";
+                const canLoan =
+                  assetItem.assetItemStatus === "AVAILABLE" &&
+                  (!assetItem.hasReadyReservation || assetItem.readyByMe);
+                const availabilityLabel = assetItem.hasReadyReservation
+                  ? assetItem.readyByMe
+                    ? "대여 준비 완료"
+                    : "예약자 대여 대기"
+                  : null;
                 return (
                   <div
                     className="asset-choice-card"
@@ -190,17 +200,23 @@ function LoanCreatePage() {
                     <h3>{assetItem.serialNumber}</h3>
                     <p>위치: {assetItem.location}</p>
                     <p>
-                      <StatusBadge status={assetItem.assetItemStatus} />
+                      {availabilityLabel || (
+                        <StatusBadge status={assetItem.assetItemStatus} />
+                      )}
                     </p>
 
                     <button
                       type="button"
-                      disabled={!isAvailable}
+                      disabled={!canLoan}
                       onClick={() => {
                         loanAssetItem(assetItem);
                       }}
                     >
-                      {isAvailable ? "대여 선택" : "대여 불가"}
+                      {assetItem.readyByMe
+                        ? "대여하기"
+                        : canLoan
+                          ? "대여 선택"
+                          : "대여 불가"}
                     </button>
                   </div>
                 );

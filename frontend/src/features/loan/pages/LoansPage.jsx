@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import StatusBadge from "../../../shared/components/StatusBadge";
-import { AuthContext } from "../../auth/context/AuthContext";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
 const LoansPage = () => {
   const [loans, setLoans] = useState([]);
@@ -103,7 +102,7 @@ const LoansPage = () => {
                       <StatusBadge status={loan.loanStatus} />
                     </td>
                     <td>
-                      {loan.loanStatus === "RENTED" ? (
+                      {["RENTED", "OVERDUE"].includes(loan.loanStatus) ? (
                         <button
                           type="button"
                           onClick={() => requestReturn(loan.loanId)}

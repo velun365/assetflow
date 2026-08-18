@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import StatusBadge from "../../../shared/components/StatusBadge";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
+import { formatDateTime } from "../../../shared/utils/dateTime";
 
 const ReservationsPage = () => {
   const [reservations, setReservations] = useState([]);
@@ -50,8 +51,13 @@ const ReservationsPage = () => {
       }
 
       setReservations((prevReservations) =>
-        prevReservations.filter(
-          (reservation) => reservation.reservationId !== reservationId,
+        prevReservations.map((reservation) =>
+          reservation.reservationId === reservationId
+            ? {
+                ...reservation,
+                reservationStatus: "CANCELED",
+              }
+            : reservation,
         ),
       );
     } catch (error) {
@@ -95,12 +101,14 @@ const ReservationsPage = () => {
                       {reservation.assetName}
                     </td>
                     <td>{reservation.serialNumber}</td>
-                    <td>{reservation.reservedAt}</td>
+                    <td>{formatDateTime(reservation.reservedAt)}</td>
                     <td>
                       <StatusBadge status={reservation.reservationStatus} />
                     </td>
                     <td>
-                      {reservation.reservationStatus === "WAITING" ? (
+                      {["WAITING", "READY"].includes(
+                        reservation.reservationStatus,
+                      ) ? (
                         <button
                           type="button"
                           onClick={() =>
