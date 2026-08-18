@@ -63,7 +63,7 @@ const AssetCreatePage = () => {
   return (
     <div className="page">
       <div className="page-heading"><div><h1>자산 등록</h1><p>관리할 자산의 분류와 기본 정보를 입력합니다.</p></div></div>
-      <div className="form-card">
+      <div className="form-card admin-form">
       <div className="form-grid">
       <div className="form-field form-field--full">
         <label htmlFor="categoryId">카테고리</label>

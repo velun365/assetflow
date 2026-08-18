@@ -76,8 +76,8 @@ function AssetAdminPage() {
         <div><h1>자산 목록</h1><p>자산 종류별 보유 수량과 대여 가능 수량을 확인합니다.</p></div>
         <Link className="btn" to="/admin/assets/new">+ 자산 등록</Link>
       </div>
-      <div className="toolbar">
-      <div className="toolbar__group toolbar__group--grow">
+      <div className="toolbar admin-search">
+      <div className="toolbar__group toolbar__group--grow admin-search__query">
       <select aria-label="자산 검색 조건" value={searchType} onChange={onChangeSearchType}>
         <option value="name">자산명</option>
         <option value="categoryName">카테고리</option>
@@ -87,7 +87,7 @@ function AssetAdminPage() {
         value={keyword}
         onChange={onChangeKeyword}
         onKeyDown={onKeyDownKeyword}
-        placeholder="검색어"
+        placeholder="검색어를 입력하세요"
       />
       </div>
       <button type="button" onClick={() => handleSearch(0)}>검색</button>
@@ -101,18 +101,25 @@ function AssetAdminPage() {
             <th>카테고리</th>
             <th>보유수량</th>
             <th>대여가능수량</th>
+            <th className="data-table__action">처리</th>
           </tr>
         </thead>
         <tbody>
           {assets.map((asset) => (
             <tr key={asset.assetId}>
               <td>{asset.assetId}</td>
-              <td>
-                <Link className="data-table__link" to={`/admin/assets/${asset.assetId}`}>{asset.name}</Link>
-              </td>
+              <td className="data-table__primary">{asset.name}</td>
               <td>{asset.categoryName}</td>
               <td>{asset.totalCount}</td>
               <td>{asset.availableCount}</td>
+              <td className="data-table__action">
+                <Link
+                  className="table-action-link"
+                  to={`/admin/assets/${asset.assetId}`}
+                >
+                  상세
+                </Link>
+              </td>
             </tr>
           ))}
         </tbody>

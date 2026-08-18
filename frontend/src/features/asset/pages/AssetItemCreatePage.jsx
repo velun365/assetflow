@@ -61,7 +61,7 @@ const AssetItemCreatePage = () => {
   return (
     <div className="page">
       <div className="page-heading"><div><h1>자산 품목 등록</h1><p>자산에 속하는 개별 품목의 식별 정보를 입력합니다.</p></div></div>
-      <form className="form-card" onSubmit={handleSubmit}>
+      <form className="form-card admin-form" onSubmit={handleSubmit}>
         <div className="form-grid">
         <div className="form-field form-field--full">
         <label htmlFor="assetId">자산</label>

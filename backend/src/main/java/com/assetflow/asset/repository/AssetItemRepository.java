@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface AssetItemRepository extends JpaRepository<AssetItem, Long> {
+public interface AssetItemRepository extends JpaRepository<AssetItem, Long>, AssetItemRepositoryCustom {
     List<AssetItem> findByAssetId(Long assetId);
 }

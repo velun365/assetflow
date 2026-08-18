@@ -81,10 +81,34 @@ function CategoryAdminPage() {
   return (
     <div className="page">
       <div className="page-heading"><div><h1>카테고리 관리</h1><p>자산을 분류하는 카테고리를 등록하고 관리합니다.</p></div></div>
-      <div className="category-layout">
-        <section className="card">
-          <div className="card__header"><h2>카테고리 목록</h2></div>
-          <div className="category-list">
+      <div className="toolbar admin-search category-create-toolbar">
+        <div className="toolbar__group toolbar__group--grow admin-search__query">
+          <input
+            type="text"
+            id="category_name"
+            value={categoryName}
+            onChange={(e) => {
+              setCategoryName(e.target.value);
+            }}
+            onKeyDown={onKeyDownKeyword}
+            placeholder="카테고리명을 입력하세요"
+            aria-label="카테고리명"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            handleSubmit();
+          }}
+        >
+          등록
+        </button>
+      </div>
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+      <section className="card">
+        <div className="card__header"><h2>카테고리 목록</h2></div>
+        <div className="category-list">
       {categories.map((category) => (
         <div className="category-row" key={category.id}>
           <p>{category.name}</p>
@@ -102,34 +126,8 @@ function CategoryAdminPage() {
         </div>
       ))}
       {categories.length === 0 && <p className="empty-state">등록된 카테고리가 없습니다.</p>}
-          </div>
-        </section>
-      <section className="card card--padded">
-        <div className="form-field">
-        <label htmlFor="category_name">카테고리명</label>
-        <input
-          type="text"
-          id="category_name"
-          value={categoryName}
-          onChange={(e) => {
-            setCategoryName(e.target.value);
-          }}
-          onKeyDown={onKeyDownKeyword}
-          placeholder="추가할 카테고리를 입력하세요"
-        />
-        </div>
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
-        <div className="form-actions"><button
-          type="button"
-          onClick={() => {
-            handleSubmit();
-          }}
-        >
-          등록
-        </button>
         </div>
       </section>
-      </div>
     </div>
   );
 }

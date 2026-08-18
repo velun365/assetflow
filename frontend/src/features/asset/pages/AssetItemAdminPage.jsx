@@ -13,6 +13,10 @@ const AssetItemAdminPage = () => {
     last: true,
   });
   const [error, setError] = useState("");
+  const [searchType, setSearchType] = useState("serialNumber");
+  const [keyword, setKeyword] = useState("");
+  const [assetItemStatus, setAssetItemStatus] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({});
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -34,9 +38,9 @@ const AssetItemAdminPage = () => {
     loadAssetItems();
   }, []);
 
-  const loadAssetItems = async (pageNumber) => {
+  const loadAssetItems = async (pageNumber, filters = appliedFilters) => {
     try {
-      const data = await fetchAssetItems(pageNumber);
+      const data = await fetchAssetItems(pageNumber, filters);
       setAssetItems(data.content);
       setPageInfo({
         number: data.number,
@@ -47,6 +51,23 @@ const AssetItemAdminPage = () => {
       setError("");
     } catch (error) {
       setError(error.message);
+    }
+  };
+
+  const handleSearch = () => {
+    const filters = {
+      searchType,
+      keyword,
+      assetItemStatus,
+    };
+
+    setAppliedFilters(filters);
+    loadAssetItems(0, filters);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleSearch();
     }
   };
 
@@ -79,10 +100,44 @@ const AssetItemAdminPage = () => {
         <div><h1>자산 품목 목록</h1><p>개별 자산의 위치, 시리얼번호와 현재 상태를 관리합니다.</p></div>
         <Link className="btn" to="/admin/asset-items/new">+ 자산 품목 등록</Link>
       </div>
+      <div className="toolbar admin-search">
+        <div className="toolbar__group toolbar__group--grow admin-search__query">
+          <select
+            aria-label="자산 품목 검색 조건"
+            value={searchType}
+            onChange={(event) => setSearchType(event.target.value)}
+          >
+            <option value="serialNumber">시리얼번호</option>
+            <option value="assetName">자산명</option>
+          </select>
+          <input
+            type="text"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="검색어를 입력하세요"
+            aria-label="자산 품목 검색어"
+          />
+        </div>
+        <select
+          aria-label="자산 품목 상태"
+          value={assetItemStatus}
+          onChange={(event) => setAssetItemStatus(event.target.value)}
+        >
+          <option value="">전체 상태</option>
+          <option value="AVAILABLE">대여 가능</option>
+          <option value="RENTED">대여 중</option>
+          <option value="BROKEN">고장</option>
+          <option value="DISPOSED">폐기</option>
+        </select>
+        <button type="button" onClick={handleSearch}>
+          검색
+        </button>
+      </div>
       {error && <p className="error-message">{error}</p>}
       <div className="table-card">
       <div className="table-scroll"><table className="data-table">
-        <thead><tr><th>품목번호</th><th>자산명</th><th>시리얼번호</th><th>위치</th><th>상태</th><th>처리</th></tr></thead>
+        <thead><tr><th>품목번호</th><th>자산명</th><th>시리얼번호</th><th>위치</th><th>상태</th><th className="data-table__action">처리</th></tr></thead>
         <tbody>
       {assetItems.map((assetItem) => (
         <tr key={assetItem.assetItemId}>
@@ -91,15 +146,21 @@ const AssetItemAdminPage = () => {
           <td>{assetItem.serialNumber}</td>
           <td>{assetItem.location}</td>
           <td><StatusBadge status={assetItem.assetItemStatus} /></td>
-          <td>{user?.role === "ADMIN" ? <button
-              type="button"
-              className="btn--danger"
-              onClick={() => {
-                deleteAssetItem(assetItem.assetItemId);
-              }}
-            >
-              삭제
-            </button> : "-"}</td>
+          <td className="data-table__action">
+            {user?.role === "ADMIN" ? (
+              <button
+                type="button"
+                className="table-action table-action--danger"
+                onClick={() => {
+                  deleteAssetItem(assetItem.assetItemId);
+                }}
+              >
+                삭제
+              </button>
+            ) : (
+              "-"
+            )}
+          </td>
         </tr>
       ))}
         </tbody>

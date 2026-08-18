@@ -37,14 +37,26 @@ const AssetDetailPage = () => {
       </div>
       <section className="card detail-hero">
         <div className="detail-image" aria-label="자산 이미지 영역">AF</div>
-        <div>
+        <div className="detail-summary">
           <h2 className="detail-title">{asset.name}</h2>
-          <dl className="detail-grid">
-            <div><dt>카테고리</dt><dd>{asset.categoryName}</dd></div>
-            <div><dt>보유 수량</dt><dd>{asset.totalCount}</dd></div>
-            <div><dt>대여 가능</dt><dd>{asset.availableCount}</dd></div>
-            <div className="detail-grid__wide"><dt>설명</dt><dd>{asset.explanation || "등록된 설명이 없습니다."}</dd></div>
+          <dl className="detail-metrics">
+            <div>
+              <dt>카테고리</dt>
+              <dd>{asset.categoryName}</dd>
+            </div>
+            <div>
+              <dt>보유 수량</dt>
+              <dd>{asset.totalCount}</dd>
+            </div>
+            <div>
+              <dt>대여 가능 수량</dt>
+              <dd>{asset.availableCount}</dd>
+            </div>
           </dl>
+          <div className="detail-description">
+            <h3>설명</h3>
+            <p>{asset.explanation || "등록된 설명이 없습니다."}</p>
+          </div>
         </div>
       </section>
       <section className="table-card">
