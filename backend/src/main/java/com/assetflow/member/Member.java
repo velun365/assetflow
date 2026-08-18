@@ -4,6 +4,8 @@ import com.assetflow.department.Department;
 import com.assetflow.loan.Loan;
 import com.assetflow.reservation.Reservation;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,5 +52,13 @@ public class Member {
         this.name = name;
         this.role = Role.USER;
         this.status = MemberStatus.ACTIVE;
+    }
+
+    public void updateInfo(String email) {
+        this.email = email;
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
     }
 }

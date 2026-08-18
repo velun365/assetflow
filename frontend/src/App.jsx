@@ -16,6 +16,7 @@ import LoanCreatePage from "./features/loan/pages/LoanCreatePage";
 import LoansPage from "./features/loan/pages/LoansPage";
 
 import MemberAdminPage from "./features/member/pages/MemberAdminPage";
+import MyPage from "./features/member/pages/MyPage";
 import SignupPage from "./features/member/pages/SignupPage";
 
 import ReservationAdminPage from "./features/reservation/pages/ReservationAdminPage";
@@ -42,6 +43,15 @@ function App() {
           element={
             <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
               <MemberAdminPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/me"
+          element={
+            <ProtectedRoute>
+              <MyPage />
             </ProtectedRoute>
           }
         />

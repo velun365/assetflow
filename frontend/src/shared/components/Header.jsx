@@ -1,31 +1,10 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../../features/auth/context/AuthContext";
 import { getCsrfToken } from "../api/csrfFetch";
-const PAGE_TITLES = {
-  "/": "대시보드",
-  "/admin/members": "회원 관리",
-  "/signup": "회원가입",
-  "/admin/assets": "자산 관리",
-  "/admin/assets/new": "자산 등록",
-  "/admin/asset-items": "자산 품목 관리",
-  "/admin/asset-items/new": "자산 품목 등록",
-  "/admin/categories": "카테고리 관리",
-  "/admin/loans": "대여 관리",
-  "/loans/new": "대여 신청",
-  "/loans": "내 대여 목록",
-  "/admin/reservations": "예약 관리",
-  "/reservations/new": "예약 신청",
-  "/reservations": "내 예약 목록",
-  "/login": "로그인",
-};
 
 const Header = () => {
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const title = pathname.startsWith("/admin/assets/")
-    ? "자산 상세"
-    : PAGE_TITLES[pathname] || "대시보드";
   const { user, setUser, loading } = useContext(AuthContext);
 
   const handleLogout = async () => {
@@ -48,8 +27,19 @@ const Header = () => {
 
   return (
     <header className="app-header">
-      <h1 className="app-header__title">{title}</h1>
-      {!loading && user && <button onClick={handleLogout}>로그아웃</button>}
+      {!loading && user && (
+        <div className="header-user">
+          <Link className="header-user__name" to="/me">
+            {user.name}님
+          </Link>
+          <Link className="header-user__link" to="/me">
+            내 정보
+          </Link>
+          <button className="header-user__logout" onClick={handleLogout}>
+            로그아웃
+          </button>
+        </div>
+      )}
     </header>
   );
 };

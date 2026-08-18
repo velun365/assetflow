@@ -1,10 +1,7 @@
 package com.assetflow.member.service;
 
 import com.assetflow.member.Member;
-import com.assetflow.member.dto.MemberCreateRequest;
-import com.assetflow.member.dto.MemberCreateResponse;
-import com.assetflow.member.dto.MemberSearchCondition;
-import com.assetflow.member.dto.MemberSearchResponse;
+import com.assetflow.member.dto.*;
 import com.assetflow.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -58,5 +55,51 @@ public class MemberService {
         return memberRepository.searchComplex(condition, pageable);
     }
 
+    @Transactional
+    public void updateMyInfo(Member member, MemberUpdateRequest request){
+        Member managedMember = memberRepository.findById(member.getId())
+                .orElseThrow(() -> new IllegalStateException("존재하지않는 회원입니다."));
+        if(!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                managedMember.getPassword()
+        )){
+            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        managedMember.updateInfo(
+                request.getEmail()
+        );
+    }
+    @Transactional
+    public void changePassword(Member member, PasswordChangeRequest request) {
 
+        Member managedMember = memberRepository.findById(member.getId())
+                .orElseThrow(() ->
+                        new IllegalStateException("존재하지 않는 회원입니다."));
+
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                managedMember.getPassword()
+        )) {
+            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        String encodedPassword =
+                passwordEncoder.encode(request.getNewPassword());
+
+        managedMember.changePassword(encodedPassword);
+    }
+
+    public MemberMyResponse getMyInfo(Member member) {
+        Member managedMember = memberRepository.findById(member.getId())
+                .orElseThrow(() ->
+                        new IllegalStateException("존재하지 않는 회원입니다."));
+
+        return new MemberMyResponse(
+                managedMember.getId(),
+                managedMember.getLoginId(),
+                managedMember.getEmail(),
+                managedMember.getName(),
+                managedMember.getRole()
+        );
+    }
 }
