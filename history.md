@@ -855,3 +855,864 @@ Cannot read properties of null (reading 'assetItems')
 - 예약 시각과 ID를 기준으로 대기 순서를 결정
 - 우선 예약자가 취소해도 다음 대기자의 우선권 유지
 - 연체 및 반납 요청 상태도 활성 대여로 판단해 자기 예약 차단
+
+---
+
+## 2026-08-07 ~ 2026-08-16
+
+## Spring Security 세션 인증 / 인가 / CSRF / 프론트 인증 상태 연동
+
+### 구현 배경
+
+기존 AssetFlow는 회원 ID를 프론트에서 직접 넘겨받아 대여·예약 기능을 처리하는 구조였다.
+이 방식은 화면 동작 자체는 단순하지만, 클라이언트가 `memberId`를 조작할 수 있기 때문에 로그인 기능을 붙인 이후에는 보안상 문제가 될 수 있다.
+
+이번 작업에서는 JWT 대신 **Spring Security의 세션 기반 인증**을 적용하고,
+로그인 사용자 정보는 서버의 `SecurityContext`와 `HttpSession`을 기준으로 판단하도록 구조를 변경하였다.
+
+### 인증 방식 선택
+
+- JWT 대신 세션 기반 인증 사용
+- 이유
+  - 사내 자산 관리 시스템 성격상 브라우저 기반 단일 웹 애플리케이션에 가깝다.
+  - 프론트와 백엔드가 같은 서비스에서 동작하는 구조에서는 세션 인증으로도 충분하다.
+  - 포트폴리오에서 인증 원리를 직접 이해하고 구현하는 데 집중하기 위해 OAuth2/JWT까지 범위를 확장하지 않았다.
+
+### Backend 인증 구성
+
+- Spring Security 설정 추가
+- `PasswordEncoder`로 BCrypt 사용
+- 회원가입 시 비밀번호를 평문으로 저장하지 않고 BCrypt로 암호화
+- 로그인 시 `AuthenticationManager`를 통해 인증 수행
+- `DaoAuthenticationProvider`가 `CustomUserDetailsService`와 `PasswordEncoder`를 사용해 실제 인증 처리
+- `CustomUserDetailsService`에서 `loginId`로 Member 조회
+- `CustomUserDetails`가 Member 정보를 Spring Security가 이해할 수 있는 `UserDetails` 형태로 감싸도록 구성
+
+### 인증 객체 흐름
+
+로그인 요청 시 전체 흐름은 다음과 같다.
+
+```text
+LoginRequest
+    ↓
+AuthenticationManager
+    ↓
+DaoAuthenticationProvider
+    ↓
+CustomUserDetailsService
+    ↓
+Member 조회
+    ↓
+CustomUserDetails
+    ↓
+PasswordEncoder 비밀번호 비교
+    ↓
+Authentication 생성
+```
+
+여기서 `Authentication`은 인증이 완료된 사용자의 정보를 담는 객체다.
+
+주요 정보:
+
+- `authentication.getPrincipal()`
+  - 현재 인증된 사용자 객체
+  - 이 프로젝트에서는 `CustomUserDetails`
+- `authentication.getAuthorities()`
+  - 사용자의 권한 정보
+- `authentication.isAuthenticated()`
+  - 인증 완료 여부
+
+### CustomUserDetails를 만든 이유
+
+Spring Security는 프로젝트의 `Member` 엔티티 구조를 직접 알지 못한다.
+따라서 `Member`를 Security가 이해할 수 있는 `UserDetails` 형태로 변환하는 어댑터 역할이 필요하다.
+
+```text
+Member
+  ↓ 감싸기
+CustomUserDetails
+  ↓
+Spring Security 인증 객체에서 사용
+```
+
+로그인 이후에는 반대로 다음 흐름으로 현재 로그인 Member를 꺼낼 수 있다.
+
+```text
+Authentication
+    ↓ getPrincipal()
+CustomUserDetails
+    ↓ getMember()
+Member
+```
+
+예시:
+
+```java
+CustomUserDetails userDetails =
+        (CustomUserDetails) authentication.getPrincipal();
+
+Member member = userDetails.getMember();
+```
+
+이 코드는 "현재 로그인한 사용자의 Member를 꺼낸다"는 의미다.
+
+### SecurityContext와 세션 저장
+
+직접 만든 JSON 로그인 API에서 인증 성공 후 `Authentication`만 생성하고 끝내면 다음 요청에서 로그인 상태가 유지되지 않는다.
+
+따라서 인증 성공 후:
+
+```text
+Authentication
+    ↓
+SecurityContext
+    ↓
+SecurityContextRepository
+    ↓
+HttpSession
+```
+
+흐름으로 저장하였다.
+
+브라우저는 이후 `JSESSIONID` 쿠키를 자동으로 전송하고,
+Spring Security는 해당 세션을 통해 다음 요청에서도 로그인 사용자를 복구한다.
+
+### `/api/auth/me`
+
+새로고침 후 React state는 초기화되지만 서버 세션은 남아 있을 수 있다.
+그래서 현재 로그인 사용자 정보를 다시 얻기 위한 `/api/auth/me` API를 구현했다.
+
+```java
+@GetMapping("me")
+public SessionMember me(Authentication authentication) {
+    CustomUserDetails userDetails =
+            (CustomUserDetails) authentication.getPrincipal();
+
+    Member member = userDetails.getMember();
+
+    return new SessionMember(
+            member.getId(),
+            member.getLoginId(),
+            member.getName(),
+            member.getRole()
+    );
+}
+```
+
+핵심 흐름:
+
+```text
+Member.role
+  ↓
+SessionMember.role
+  ↓ JSON 응답
+response.json()
+  ↓
+setUser(data)
+  ↓
+AuthContext의 user.role
+```
+
+### React AuthContext
+
+React의 로그인 상태는 여러 페이지에서 공통으로 사용해야 한다.
+그래서 `AuthContext`를 만들어 로그인 사용자와 로딩 상태를 전역적으로 공유하였다.
+
+```jsx
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+```
+
+- `user`
+  - 현재 로그인한 사용자 정보
+- `loading`
+  - `/api/auth/me` 요청이 아직 끝나지 않았는지 여부
+
+Provider:
+
+```jsx
+<AuthContext.Provider value={{ user, setUser, loading }}>
+  {children}
+</AuthContext.Provider>
+```
+
+다른 컴포넌트에서는:
+
+```jsx
+const { user, loading } = useContext(AuthContext);
+```
+
+로 꺼내 사용한다.
+
+### `children`과 props 이해
+
+```jsx
+<ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+  <AssetAdminPage />
+</ProtectedRoute>
+```
+
+위 코드에서 `ProtectedRoute`가 받는 props는 개념적으로 다음과 같다.
+
+```text
+children = <AssetAdminPage />
+roles = ["ADMIN", "MANAGER"]
+```
+
+따라서:
+
+```jsx
+const ProtectedRoute = ({ children, roles }) => {
+```
+
+는 props 객체에서 `children`, `roles`를 구조 분해 할당하는 코드다.
+
+반면 `user`, `loading`은 props가 아니라 Context에서 가져온다.
+
+```jsx
+const { user, loading } = useContext(AuthContext);
+```
+
+즉 `ProtectedRoute` 안에서는 두 경로의 데이터를 동시에 사용한다.
+
+```text
+App.jsx → children, roles 전달
+AuthContext → user, loading 제공
+```
+
+### ProtectedRoute
+
+프론트에서 비로그인 또는 권한 없는 사용자가 관리자 페이지를 직접 URL로 접근했을 때 빈 화면이나 403 요청만 발생하는 문제가 있었다.
+
+이를 UX 수준에서 막기 위해 `ProtectedRoute`를 구현하였다.
+
+```jsx
+const ProtectedRoute = ({ children, roles }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+```
+
+역할:
+
+- 로그인 정보 확인 중 → 화면 렌더링 보류
+- 비로그인 → `/login` 이동
+- 역할 불일치 → `/` 이동
+- 역할 일치 → 원래 페이지 렌더링
+
+### App.jsx의 roles 의미
+
+`ProtectedRoute` 자체는 어떤 페이지에 어떤 역할이 허용되는지 알 수 없다.
+페이지별 허용 역할은 `App.jsx`에서 props로 전달한다.
+
+```jsx
+<ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+  <MemberAdminPage />
+</ProtectedRoute>
+```
+
+이때:
+
+```text
+App.jsx
+→ 페이지별 허용 역할 정의
+
+ProtectedRoute
+→ 현재 user.role과 허용 roles 비교
+```
+
+`roles`를 전달하지 않으면 로그인 여부만 검사한다.
+
+예:
+
+```jsx
+<ProtectedRoute>
+  <LoansPage />
+</ProtectedRoute>
+```
+
+위 페이지는 로그인한 사용자라면 USER/MANAGER/ADMIN 모두 접근 가능하다.
+
+### 프론트 권한과 백엔드 권한의 차이
+
+중요하게 배운 점:
+
+**ProtectedRoute는 보안의 최종 방어선이 아니다.**
+
+프론트 권한 검사는 화면 접근 UX를 제어한다.
+사용자는 브라우저 개발자 도구나 직접 HTTP 요청으로 프론트 코드를 우회할 수 있기 때문이다.
+
+실제 보안은 Spring Security에서 API 요청 자체를 차단해야 한다.
+
+```text
+Frontend ProtectedRoute
+→ 화면 접근 제어 / UX
+
+Backend Spring Security
+→ 실제 API 인가 / 보안
+```
+
+### Role 기반 인가
+
+Role:
+
+```text
+USER
+MANAGER
+ADMIN
+```
+
+주요 정책:
+
+- 일반 사용자 기능 → 인증된 사용자
+- 회원 목록 / 전체 대여 / 전체 예약 → MANAGER, ADMIN
+- 자산·품목·카테고리 등록 → MANAGER, ADMIN
+- 삭제 기능 → ADMIN
+
+프론트의 `roles={["ADMIN", "MANAGER"]}`와 백엔드 Security 설정을 맞추어 사용하였다.
+
+### CSRF 적용
+
+세션 기반 인증에서는 브라우저가 쿠키를 자동으로 전송하기 때문에 CSRF 공격을 고려해야 한다.
+
+`CookieCsrfTokenRepository.withHttpOnlyFalse()`를 사용하여 CSRF 토큰을 쿠키로 제공하고,
+프론트의 상태 변경 요청에서 토큰을 헤더에 넣도록 구성하였다.
+
+```jsx
+const csrfToken = await getCsrfToken();
+
+await fetch("/api/...", {
+  method: "POST",
+  headers: {
+    "X-XSRF-TOKEN": csrfToken,
+  },
+});
+```
+
+중요한 점:
+
+- `permitAll()`은 "로그인하지 않아도 접근 가능"이라는 뜻이다.
+- `permitAll()`이라고 해서 CSRF 검사가 자동으로 비활성화되는 것은 아니다.
+- 로그인, 회원가입처럼 공개 API라도 POST 요청이면 CSRF 토큰이 필요할 수 있다.
+
+### JSESSIONID와 XSRF-TOKEN 차이
+
+- `JSESSIONID`
+  - 서버 세션을 식별하는 쿠키
+  - "어떤 로그인 세션인가"를 확인
+- `XSRF-TOKEN`
+  - CSRF 방어를 위한 토큰
+  - "이 상태 변경 요청이 정상 페이지 흐름에서 만들어진 요청인가"를 검증
+
+둘은 목적이 다르다.
+
+### 로그아웃
+
+로그아웃은 DB의 회원 데이터를 삭제하거나 수정하는 비즈니스 로직이 아니다.
+현재 로그인 세션과 SecurityContext를 정리하는 인증 상태 변경이다.
+
+```java
+@PostMapping("logout")
+public void logout(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Authentication authentication
+) {
+    new SecurityContextLogoutHandler()
+            .logout(request, response, authentication);
+}
+```
+
+그래서 별도의 Service/Repository 없이 Controller에서 Security logout handler를 사용하였다.
+
+프론트에서는 로그아웃 성공 후:
+
+```jsx
+setUser(null);
+navigate("/login");
+```
+
+을 수행해 React 로그인 상태도 함께 초기화한다.
+
+### 로그인 UI / 회원가입 구조 정리
+
+- 기존 회원 생성 페이지를 `SignupPage`로 명확하게 분리
+- `/signup` 공개 Route 사용
+- 회원가입 성공 후 로그인 페이지로 이동
+- 일반 회원가입에서는 Role을 USER로 생성
+- 비밀번호 확인 값은 프론트 검증용이며 서버 Request DTO에는 포함하지 않음
+- 로그인/회원가입 화면 스타일을 동일한 인증 UI 계열로 정리
+
+### Sidebar / Header 권한 UI
+
+- USER와 MANAGER/ADMIN 메뉴를 구분
+- MANAGER에게 ADMIN 전용 삭제 버튼이 보이지 않도록 처리
+- 로그아웃 버튼은 로그인 상태일 때만 표시
+- Header 페이지 제목 보완
+
+### AuthContext의 loading이 필요한 이유
+
+React 새로고침 시 `user`의 초기값은 `null`이다.
+하지만 서버 세션까지 로그아웃된 것은 아니다.
+
+`/me` 응답을 받기 전에 `user === null`만 보고 로그인 화면을 렌더링하면 잠깐 로그인 화면이 보였다가 다시 로그인 상태로 바뀌는 깜빡임이 생길 수 있다.
+
+그래서:
+
+```text
+초기 상태
+user = null
+loading = true
+
+/me 완료
+→ 성공: user 설정
+→ 실패: user는 null 유지
+→ finally: loading = false
+```
+
+구조로 처리하였다.
+
+### useEffect와 로그인 복구
+
+`AuthProvider`가 처음 렌더링될 때 `/api/auth/me`를 한 번 호출한다.
+
+```jsx
+useEffect(() => {
+  const loadUser = async () => {
+    ...
+  };
+
+  loadUser();
+}, []);
+```
+
+`[]`이므로 최초 mount 시 한 번 실행된다.
+
+여기서 `useEffect`는 버튼 클릭 같은 직접 이벤트가 아니라,
+컴포넌트 렌더링 이후 자동으로 수행되어야 하는 side effect를 처리하는 용도다.
+
+---
+
+## 2026-08-16
+
+## 로그인 사용자 소유권 검증 보완
+
+### 문제 발견
+
+Spring Security 로그인과 Role 기반 인가를 구현했지만,
+일부 대여·예약 API는 여전히 프론트에서 `memberId`를 받아 처리하고 있었다.
+
+예:
+
+```json
+{
+  "memberId": 3,
+  "assetItemId": 10
+}
+```
+
+이 구조에서는 실제 로그인 사용자가 1번 회원이어도 요청 body의 `memberId`를 3으로 바꾸면 다른 회원 명의로 요청할 가능성이 있다.
+
+따라서 인증을 적용한 이후에는 일반 사용자의 "내 데이터" 처리에서 클라이언트가 보내는 `memberId`를 신뢰하면 안 된다.
+
+### 핵심 원칙
+
+```text
+내 데이터 처리 API
+→ memberId를 클라이언트에게 받지 않는다.
+→ Authentication의 principal에서 현재 로그인 Member를 꺼낸다.
+```
+
+반대로 관리자 기능처럼 특정 사용자를 대상으로 조회해야 하는 API에서는 `memberId`를 요청 값으로 받을 수 있다.
+
+### 대여 생성 소유권 보완
+
+#### 개선 전
+
+`LoanCreateRequest`:
+
+```java
+private Long memberId;
+private Long assetItemId;
+```
+
+Service:
+
+```java
+Member member = memberRepository.findById(request.getMemberId())
+        .orElseThrow(...);
+```
+
+문제:
+
+- 요청 body의 `memberId`는 사용자가 임의로 변경 가능
+- 로그인한 사용자와 request의 memberId가 일치한다는 보장이 없음
+
+#### 개선 후
+
+`LoanCreateRequest`에서 `memberId` 제거:
+
+```java
+@NotNull
+private Long assetItemId;
+```
+
+Controller에서 로그인 Member 추출:
+
+```java
+@PostMapping
+public LoanCreateResponse createLoan(
+        @Valid @RequestBody LoanCreateRequest request,
+        Authentication authentication
+) {
+    CustomUserDetails userDetails =
+            (CustomUserDetails) authentication.getPrincipal();
+
+    Member member = userDetails.getMember();
+
+    return loanService.createLoan(member, request);
+}
+```
+
+Service:
+
+```java
+public LoanCreateResponse createLoan(
+        Member member,
+        LoanCreateRequest request
+)
+```
+
+프론트 요청도:
+
+```json
+{
+  "assetItemId": 10
+}
+```
+
+만 보내도록 변경하였다.
+
+### 반납 요청 소유권 보완
+
+#### 개선 전
+
+```text
+POST /api/loans/{loanId}/return-request?memberId=3
+```
+
+Service에서는:
+
+```java
+if (!loan.getMember().getId().equals(memberId)) {
+    throw new IllegalStateException(...);
+}
+```
+
+로 비교하고 있었지만, 이 `memberId` 자체를 사용자가 조작할 수 있었다.
+
+#### 개선 후
+
+Controller에서 Authentication으로 Member를 꺼내 Service에 전달:
+
+```java
+return loanService.requestReturn(loanId, member);
+```
+
+Service:
+
+```java
+if (!loan.getMember().getId().equals(member.getId())) {
+    throw new IllegalStateException("본인의 대여만 반납 요청할 수 있습니다.");
+}
+```
+
+이제 비교 대상의 `member`는 서버 인증 정보를 통해 얻은 사용자이므로 요청자가 임의로 바꿀 수 없다.
+
+### 내 대여 목록 조회 보완
+
+#### 개선 전
+
+```text
+GET /api/loans/members/{memberId}
+```
+
+프론트:
+
+```jsx
+fetch(`/api/loans/members/${user.memberId}`);
+```
+
+URL의 memberId를 바꾸면 다른 사용자의 목록을 요청할 가능성이 있었다.
+
+#### 개선 후
+
+```text
+GET /api/loans/my
+```
+
+Controller가 현재 로그인 Member의 ID를 직접 사용:
+
+```java
+return loanService.findLoansByMember(member.getId());
+```
+
+프론트는 더 이상 user.memberId를 URL에 넣지 않는다.
+
+```jsx
+fetch("/api/loans/my");
+```
+
+### 예약 생성 소유권 보완
+
+`ReservationCreateRequest`에서도 `memberId`를 제거하고 `assetItemId`만 받도록 변경하였다.
+
+Controller에서 Authentication의 Member를 꺼내:
+
+```java
+reservationService.createReservation(member, request);
+```
+
+형태로 전달하였다.
+
+Service는 더 이상:
+
+```java
+memberRepository.findById(request.getMemberId())
+```
+
+를 호출하지 않는다.
+
+### 내 예약 목록 조회 보완
+
+#### 개선 전
+
+```text
+GET /api/reservations/members/{memberId}
+```
+
+#### 개선 후
+
+```text
+GET /api/reservations/my
+```
+
+Controller가 현재 로그인 Member ID를 기준으로 조회한다.
+
+프론트에서도:
+
+```jsx
+fetch("/api/reservations/my");
+```
+
+로 변경하고, URL 구성을 위해 사용하던 `AuthContext.user.memberId` 의존성을 제거하였다.
+
+### 예약 취소 소유권 검증
+
+기존 예약 취소는 `reservationId`만 알면 Service가 해당 예약을 취소했다.
+
+```java
+cancelReservation(Long reservationId)
+```
+
+이를:
+
+```java
+cancelReservation(Long reservationId, Member member)
+```
+
+로 변경하고 실제 예약 소유자와 로그인 사용자를 비교하였다.
+
+```java
+if (!reservation.getMember().getId().equals(member.getId())) {
+    throw new IllegalStateException("본인의 예약만 취소할 수 있습니다.");
+}
+```
+
+예약 소유자가 아니면 취소 요청을 거부한다.
+
+### 소유권 검증에서 배운 점
+
+`Role` 검사와 `Ownership` 검사는 다른 문제다.
+
+예를 들어 USER가 대여 기능을 사용할 권한이 있는 것은 Role 인가 문제다.
+그러나 "이 USER가 이 대여 기록의 실제 소유자인가"는 별도의 소유권 검증 문제다.
+
+```text
+Role / Authorization
+→ 이 기능을 사용할 수 있는 역할인가?
+
+Ownership
+→ 이 데이터가 실제로 현재 로그인 사용자의 것인가?
+```
+
+Spring Security의 URL 권한 설정만으로는 데이터 소유권까지 자동으로 검증되지 않는다.
+Service 로직에서 현재 인증 사용자와 엔티티의 소유자를 비교해야 한다.
+
+### 프론트에서 memberId를 제거한 이유
+
+프론트의 값은 신뢰할 수 없는 입력이다.
+
+React state에 저장된:
+
+```jsx
+user.memberId;
+```
+
+도 정상 UI 흐름에서는 올바른 값이지만,
+사용자가 브라우저 개발자 도구나 직접 HTTP 요청을 사용하면 요청값 자체를 바꿀 수 있다.
+
+따라서 보안 판단은 반드시 서버에서 해야 한다.
+
+### DTO 설계 관점에서 다시 배운 점
+
+초기 프로젝트에서는 연관관계를 연결하기 위해 Request DTO에 `memberId`, `assetItemId`를 모두 받았다.
+하지만 인증 기능이 추가되면서 DTO 설계 기준이 달라졌다.
+
+- 사용자가 선택해야 하는 대상 ID
+  - 예: `assetItemId`
+  - Request DTO에 포함
+- 서버가 인증 정보로 이미 알고 있는 ID
+  - 예: 현재 로그인 사용자의 `memberId`
+  - Request DTO에 포함하지 않음
+
+즉 "연관관계가 있으니 무조건 모든 id를 Request DTO로 받는다"가 아니라,
+**누가 결정해야 하는 값인지**를 기준으로 DTO를 설계해야 한다.
+
+### 현재 보완된 소유권 영역
+
+대여:
+
+- 대여 생성
+- 반납 요청
+- 내 대여 목록 조회
+
+예약:
+
+- 예약 생성
+- 내 예약 목록 조회
+- 예약 취소
+
+모두 프론트가 임의의 memberId를 넘겨 일반 사용자 데이터를 처리하지 않도록 변경하였다.
+
+---
+
+## 이번 보안 작업에서 면접 전에 복습할 질문
+
+### Spring Security
+
+1. `AuthenticationManager`는 무슨 역할을 하는가?
+2. `DaoAuthenticationProvider`는 무엇을 검증하는가?
+3. `UserDetailsService`와 `UserDetails`의 역할 차이는 무엇인가?
+4. 왜 Member 엔티티를 바로 쓰지 않고 `CustomUserDetails`를 만들었는가?
+5. `Authentication.getPrincipal()`에는 무엇이 들어있는가?
+6. `SecurityContext`와 `HttpSession`은 어떤 관계인가?
+7. 새로고침 후에도 로그인 상태가 유지되는 이유는 무엇인가?
+8. `JSESSIONID`는 어떤 역할을 하는가?
+9. `hasRole()`과 실제 `ROLE_` authority는 어떤 관계인가?
+10. 401과 403의 차이는 무엇인가?
+
+### CSRF
+
+1. 세션 인증에서 CSRF가 왜 중요한가?
+2. `permitAll()`인데도 POST 로그인 요청에서 CSRF 토큰이 필요한 이유는 무엇인가?
+3. `JSESSIONID`와 `XSRF-TOKEN`의 차이는 무엇인가?
+4. GET 요청에는 왜 일반적으로 CSRF 토큰을 넣지 않는가?
+5. 상태를 변경하는 POST/DELETE 요청에서는 왜 CSRF 헤더가 필요한가?
+
+### React 인증 상태
+
+1. React Context를 왜 사용했는가?
+2. `createContext`, `Provider`, `useContext` 각각의 역할은 무엇인가?
+3. `children`은 무엇인가?
+4. `user`와 `loading`을 왜 따로 두었는가?
+5. 새로고침하면 React state는 초기화되는데 로그인은 왜 유지되는가?
+6. AuthProvider의 `useEffect(..., [])`는 언제 실행되는가?
+7. ProtectedRoute는 실제 보안인가, UX 제어인가?
+8. App.jsx의 `roles`와 AuthContext의 `user.role`은 각각 어디서 오는가?
+
+### 소유권 보안
+
+1. 로그인 인증을 붙였는데도 왜 `memberId` 조작 취약점이 남을 수 있는가?
+2. Role 인가와 데이터 소유권 검증의 차이는 무엇인가?
+3. 왜 `memberId`를 Request DTO에서 제거했는가?
+4. `assetItemId`는 계속 Request DTO에 남겨도 되는 이유는 무엇인가?
+5. `/members/{memberId}` 대신 `/my` API를 사용한 이유는 무엇인가?
+6. 예약 취소에서 왜 `reservation.member.id`와 로그인 Member ID를 비교해야 하는가?
+7. 클라이언트 입력을 신뢰하면 안 된다는 말은 실제 코드에서 무엇을 의미하는가?
+
+---
+
+## 추후 개선 / 아직 남은 과제
+
+- 개발 DB와 테스트 DB 분리
+- `application-local`, `application-test`, 운영 환경 설정 분리
+- DB 계정/비밀번호 환경변수 처리
+- `ddl-auto=create` 운영 사용 금지 및 테스트 환경 재정리
+- 운영 프론트/백엔드 연결 구조 확정
+- 로그인 시 세션 fixation 보호 여부 확인
+- `SUSPENDED` 회원 로그인 정책 결정
+- OVERDUE 상태에서도 반납 요청 UI가 가능하도록 보완
+- READY 예약의 취소 및 만료 정책 보완
+- 인증/인가/CSRF/소유권 통합 테스트 추가
+- `IllegalArgumentException` 등 공통 예외 응답 정리
+- Validation 및 DB unique 제약 보완
+- README에 인증 구조, 권한표, 테스트 계정, 실행 방법, 배포 구조 추가
+- Git 변경사항 정리 및 커밋
+- AWS 배포 구조 설계
+- 시간 여유가 있을 경우 대여/예약 동시성 제어 검토
+
+## 2026-08-18
+
+### 대여/예약 사용자 상태 처리 개선
+
+- AssetItem 응답에 hasReadyReservation, readyByMe, borrowedByMe, reservedByMe 추가
+- READY 예약 존재 여부와 현재 로그인 사용자 소유 여부를 구분
+- 예약 신청 화면에서 본인 대여 품목 및 이미 예약한 품목의 신청 버튼 비활성화
+- 대여 화면에서 READY 우선권이 있는 사용자만 대여 가능하도록 프론트 표시 조건 보완
+- WAITING/READY 중복 예약 조회를 ReservationStatusIn 기반으로 정리
+
+### Reservation LazyInitializationException 해결
+
+- SecurityContext에 보관된 Member가 현재 영속성 컨텍스트에서 detached 상태일 수 있음을 확인
+- Reservation 생성 시 로그인 Member ID로 Member를 다시 조회하여 managed entity 사용
+- 양방향 연관관계 설정 중 Member.reservations LAZY 컬렉션 접근 오류 해결
+
+### 관리자 자산 품목 기능 보완
+
+- 사용자용 AssetItemResponse와 관리자용 AssetItemAdminResponse 분리
+- 관리자 자산 품목 전체 조회 API 복구
+- 자산 품목 시리얼번호 / 자산명 / 상태 검색 기능 추가
+- 관리자 자산 관리 화면의 검색 toolbar 및 상세 화면 UI 정리
+
+### 관리자 UI 개선
+
+- 검색/필터 input, select, button 스타일 통일
+- Sidebar 메뉴명 및 active/open 상태 로직 정리
+- 여러 Sidebar 그룹을 독립적으로 펼쳐둘 수 있도록 개선
+- 예약일 표시를 YYYY-MM-DD HH:mm 형식으로 통일
+- ADMIN 화면에서 불필요한 사용자 메뉴 노출 정리
+
+### 회원 개인 정보 관리 기능 추가
+
+- GET /api/members/me 내 정보 조회
+- PATCH /api/members/me 이메일 수정
+- 현재 비밀번호 BCrypt 검증 후 개인정보 변경
+- PATCH /api/members/me/password 비밀번호 변경
+- 새 비밀번호 BCrypt 인코딩 적용
+- 8~16자 비밀번호 validation 추가
+- /me 프론트 페이지 및 Header 진입점 추가
+- ADMIN / MANAGER / USER 모두 본인 정보 접근 가능
