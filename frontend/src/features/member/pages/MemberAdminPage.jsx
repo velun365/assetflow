@@ -72,8 +72,8 @@ function MemberAdminPage() {
         </div>
       </div>
 
-      <div className="toolbar">
-        <div className="toolbar__group toolbar__group--grow">
+      <div className="toolbar admin-search">
+        <div className="toolbar__group toolbar__group--grow admin-search__query">
           <select aria-label="회원 검색 조건" value={searchType} onChange={onChangeSearchType}>
             <option value="loginId">아이디</option>
             <option value="name">이름</option>

@@ -174,8 +174,8 @@ const LoanAdminPage = () => {
     <div className="page">
       <div className="page-heading"><div><h1>전체 대여 관리</h1><p>대여 상태를 검색하고 접수된 반납 요청을 승인합니다.</p></div></div>
 
-      <div className="toolbar">
-        <div className="toolbar__group toolbar__group--grow">
+      <div className="toolbar admin-search">
+        <div className="toolbar__group toolbar__group--grow admin-search__query">
         <select
           aria-label="대여 검색 조건"
           value={searchType}

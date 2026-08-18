@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../features/auth/context/AuthContext";
 
 const adminSections = [
@@ -7,20 +7,24 @@ const adminSections = [
     id: "assets",
     title: "자산 관리",
     links: [
-      { to: "/admin/assets", label: "자산 목록" },
-      { to: "/admin/asset-items", label: "자산 품목" },
+      { to: "/admin/assets", label: "자산 목록", matchChildren: true },
+      {
+        to: "/admin/asset-items",
+        label: "자산 품목",
+        matchChildren: true,
+      },
       { to: "/admin/categories", label: "카테고리" },
     ],
   },
   {
     id: "adminLoans",
     title: "대여 관리",
-    links: [{ to: "/admin/loans", label: "관리자 대여 현황" }],
+    links: [{ to: "/admin/loans", label: "대여 현황" }],
   },
   {
     id: "adminReservations",
     title: "예약 관리",
-    links: [{ to: "/admin/reservations", label: "관리자 예약 현황" }],
+    links: [{ to: "/admin/reservations", label: "예약 현황" }],
   },
   {
     id: "members",
@@ -35,7 +39,7 @@ const userSections = [
     title: "대여",
     links: [
       { to: "/loans/new", label: "대여 신청" },
-      { to: "/loans", label: "내 대여 목록", end: true },
+      { to: "/loans", label: "내 대여 목록" },
     ],
   },
   {
@@ -43,52 +47,66 @@ const userSections = [
     title: "예약",
     links: [
       { to: "/reservations/new", label: "예약 신청" },
-      { to: "/reservations", label: "내 예약 목록", end: true },
+      { to: "/reservations", label: "내 예약 목록" },
     ],
   },
 ];
 
-const getOpenGroups = (pathname) => ({
-  assets:
-    pathname === "/admin/assets" ||
-    pathname.startsWith("/admin/assets/") ||
-    pathname === "/admin/asset-items" ||
-    pathname === "/admin/asset-items/new" ||
-    pathname === "/admin/categories",
-  adminLoans: pathname === "/admin/loans",
-  adminReservations: pathname === "/admin/reservations",
-  members: pathname === "/admin/members",
-  userLoans: pathname === "/loans" || pathname === "/loans/new",
-  userReservations:
-    pathname === "/reservations" || pathname === "/reservations/new",
-});
+const allSections = [...adminSections, ...userSections];
 
-const SidebarLink = ({ to, label, end, nested = false }) => (
-  <NavLink
+const isPathActive = (pathname, link) =>
+  pathname === link.to ||
+  (link.matchChildren && pathname.startsWith(`${link.to}/`));
+
+const getActiveGroupId = (pathname) =>
+  allSections.find((section) =>
+    section.links.some((link) => isPathActive(pathname, link)),
+  )?.id ?? null;
+
+const SidebarLink = ({
+  to,
+  label,
+  nested = false,
+  isActive = false,
+  onNavigate,
+}) => (
+  <Link
     to={to}
-    end={end}
-    className={({ isActive }) =>
-      `sidebar-link${nested ? " sidebar-link--nested" : ""}${
-        isActive ? " sidebar-link--active" : ""
-      }`
-    }
+    onClick={onNavigate}
+    aria-current={isActive ? "page" : undefined}
+    className={`sidebar-link${nested ? " sidebar-link--nested" : ""}${
+      isActive ? " sidebar-link--active" : ""
+    }`}
   >
     <span>{label}</span>
-  </NavLink>
+  </Link>
 );
 
-const AccordionGroup = ({ section, isOpen, onToggle }) => (
+const AccordionGroup = ({
+  section,
+  isOpen,
+  onToggle,
+  onLinkNavigate,
+  pathname,
+}) => (
   <section className="sidebar-section">
     <button
       type="button"
-      className="sidebar-section__toggle"
+      className={`sidebar-section__toggle${
+        isOpen ? " sidebar-section__toggle--open" : ""
+      }`}
       onClick={onToggle}
       aria-expanded={isOpen}
       aria-controls={`sidebar-group-${section.id}`}
     >
       <span>{section.title}</span>
-      <span className="sidebar-section__chevron" aria-hidden="true">
-        {isOpen ? "⌄" : "›"}
+      <span
+        className={`sidebar-section__chevron${
+          isOpen ? " sidebar-section__chevron--open" : ""
+        }`}
+        aria-hidden="true"
+      >
+        ›
       </span>
     </button>
     {isOpen && (
@@ -97,7 +115,13 @@ const AccordionGroup = ({ section, isOpen, onToggle }) => (
         id={`sidebar-group-${section.id}`}
       >
         {section.links.map((link) => (
-          <SidebarLink key={link.to} {...link} nested />
+          <SidebarLink
+            key={link.to}
+            {...link}
+            nested
+            isActive={isPathActive(pathname, link)}
+            onNavigate={() => onLinkNavigate(section.id)}
+          />
         ))}
       </div>
     )}
@@ -107,40 +131,58 @@ const AccordionGroup = ({ section, isOpen, onToggle }) => (
 const Sidebar = () => {
   const { pathname } = useLocation();
   const { user } = useContext(AuthContext);
-  const [groupOverrides, setGroupOverrides] = useState({});
-  const routeOpenGroups = getOpenGroups(pathname);
-  const currentOverrides = groupOverrides[pathname] || {};
+  const activeGroupId = getActiveGroupId(pathname);
+  const [openGroups, setOpenGroups] = useState(() =>
+    activeGroupId ? { [activeGroupId]: true } : {},
+  );
 
-  const isGroupOpen = (groupId) =>
-    currentOverrides[groupId] ?? routeOpenGroups[groupId];
+  const isGroupOpen = (groupId) => {
+    if (Object.hasOwn(openGroups, groupId)) {
+      return openGroups[groupId];
+    }
+
+    return groupId === activeGroupId;
+  };
 
   const toggleGroup = (groupId) => {
-    setGroupOverrides((current) => {
-      const pathOverrides = current[pathname] || {};
-      const currentValue = pathOverrides[groupId] ?? routeOpenGroups[groupId];
+    setOpenGroups((current) => {
+      const currentlyOpen = Object.hasOwn(current, groupId)
+        ? current[groupId]
+        : groupId === activeGroupId;
 
       return {
         ...current,
-        [pathname]: {
-          ...pathOverrides,
-          [groupId]: !currentValue,
-        },
+        [groupId]: !currentlyOpen,
       };
     });
   };
 
+  const keepGroupOpen = (groupId) => {
+    setOpenGroups((current) => ({
+      ...current,
+      ...(activeGroupId && !Object.hasOwn(current, activeGroupId)
+        ? { [activeGroupId]: true }
+        : {}),
+      [groupId]: true,
+    }));
+  };
+
   return (
     <aside className="app-sidebar">
-      <NavLink to="/" className="brand" aria-label="AssetFlow 홈">
+      <Link to="/" className="brand" aria-label="AssetFlow 홈">
         <span>
           <strong>AssetFlow</strong>
           <small>Asset Management</small>
         </span>
-      </NavLink>
+      </Link>
 
       {user && (
         <nav className="sidebar-nav" aria-label="주요 메뉴">
-          <SidebarLink to="/" label="대시보드" end />
+          <SidebarLink
+            to="/"
+            label="대시보드"
+            isActive={pathname === "/"}
+          />
 
           {(user.role === "ADMIN" || user.role === "MANAGER") && (
             <>
@@ -151,22 +193,30 @@ const Sidebar = () => {
                   section={section}
                   isOpen={isGroupOpen(section.id)}
                   onToggle={() => toggleGroup(section.id)}
+                  onLinkNavigate={keepGroupOpen}
+                  pathname={pathname}
                 />
               ))}
             </>
           )}
 
-          <p className="sidebar-role-label sidebar-role-label--user">
-            사용자 메뉴
-          </p>
-          {userSections.map((section) => (
-            <AccordionGroup
-              key={section.id}
-              section={section}
-              isOpen={isGroupOpen(section.id)}
-              onToggle={() => toggleGroup(section.id)}
-            />
-          ))}
+          {user.role !== "ADMIN" && (
+            <>
+              <p className="sidebar-role-label sidebar-role-label--user">
+                사용자 메뉴
+              </p>
+              {userSections.map((section) => (
+                <AccordionGroup
+                  key={section.id}
+                  section={section}
+                  isOpen={isGroupOpen(section.id)}
+                  onToggle={() => toggleGroup(section.id)}
+                  onLinkNavigate={keepGroupOpen}
+                  pathname={pathname}
+                />
+              ))}
+            </>
+          )}
         </nav>
       )}
     </aside>

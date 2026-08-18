@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import StatusBadge from "../../../shared/components/StatusBadge";
+import { formatDateTime } from "../../../shared/utils/dateTime";
 
 const ReservationAdminPage = () => {
   const [reservations, setReservations] = useState([]);
@@ -92,8 +93,8 @@ const ReservationAdminPage = () => {
     <div className="page">
       <div className="page-heading"><div><h1>예약 현황</h1><p>자산별 예약 순서와 처리 상태를 조회합니다.</p></div></div>
 
-      <div className="toolbar">
-        <div className="toolbar__group toolbar__group--grow">
+      <div className="toolbar admin-search">
+        <div className="toolbar__group toolbar__group--grow admin-search__query">
         <select
           aria-label="예약 검색 조건"
           value={searchType}
@@ -109,7 +110,7 @@ const ReservationAdminPage = () => {
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="검색어"
+          placeholder="검색어를 입력하세요"
         />
         </div>
 
@@ -153,7 +154,7 @@ const ReservationAdminPage = () => {
                 <td>{reservation.reservationId}</td>
                 <td className="data-table__primary">{reservation.memberName}</td>
                 <td>{reservation.assetName}</td>
-                <td>{reservation.reservedAt}</td>
+                <td>{formatDateTime(reservation.reservedAt)}</td>
                 <td><StatusBadge status={reservation.reservationStatus} /></td>
               </tr>
             ))}
