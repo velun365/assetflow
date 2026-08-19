@@ -29,7 +29,10 @@ const adminSections = [
   {
     id: "members",
     title: "회원 관리",
-    links: [{ to: "/admin/members", label: "회원 목록" }],
+    links: [
+      { to: "/admin/members", label: "회원 목록" },
+      { to: "/admin/departments", label: "부서 관리" },
+    ],
   },
 ];
 
@@ -178,11 +181,7 @@ const Sidebar = () => {
 
       {user && (
         <nav className="sidebar-nav" aria-label="주요 메뉴">
-          <SidebarLink
-            to="/"
-            label="대시보드"
-            isActive={pathname === "/"}
-          />
+          <SidebarLink to="/" label="대시보드" isActive={pathname === "/"} />
 
           {(user.role === "ADMIN" || user.role === "MANAGER") && (
             <>

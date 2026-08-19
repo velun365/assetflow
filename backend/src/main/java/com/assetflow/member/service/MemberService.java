@@ -1,5 +1,7 @@
 package com.assetflow.member.service;
 
+import com.assetflow.department.Department;
+import com.assetflow.department.repository.DepartmentRepository;
 import com.assetflow.member.Member;
 import com.assetflow.member.dto.*;
 import com.assetflow.member.repository.MemberRepository;
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DepartmentRepository departmentRepository;
 
     @Transactional
     public MemberCreateResponse join(MemberCreateRequest request) {
@@ -99,7 +102,30 @@ public class MemberService {
                 managedMember.getLoginId(),
                 managedMember.getEmail(),
                 managedMember.getName(),
-                managedMember.getRole()
+                managedMember.getRole(),
+                member.getDepartment() != null
+                        ? member.getDepartment().getName()
+                        : null
         );
     }
+
+    @Transactional
+    public void updateMemberByAdmin(
+            Long memberId,
+            MemberAdminUpdateRequest request
+    ){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+
+        Department department = null;
+
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new IllegalStateException("존재하지 않는 부서입니다."));
+        }
+
+        member.changeDepartment(department);
+        member.changeStatus(request.getStatus());
+    }
+
 }

@@ -7,7 +7,9 @@ import com.assetflow.auth.security.CustomUserDetails;
 import com.assetflow.member.Member;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -35,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public SessionMember login(@RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    public SessionMember login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -44,8 +46,14 @@ public class AuthController {
                             request.getPassword()
                     )
             );
+        } catch (DisabledException e) {
+            throw new LoginFailedException(
+                    "계정이 정지되었습니다. 관리자에게 문의하세요."
+            );
         } catch (AuthenticationException e) {
-            throw new LoginFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            throw new LoginFailedException(
+                    "아이디 또는 비밀번호가 일치하지 않습니다."
+            );
         }
 
 

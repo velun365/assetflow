@@ -19,6 +19,8 @@ import MemberAdminPage from "./features/member/pages/MemberAdminPage";
 import MyPage from "./features/member/pages/MyPage";
 import SignupPage from "./features/member/pages/SignupPage";
 
+import DepartmentAdminPage from "./features/department/pages/DepartmentAdminPage";
+
 import ReservationAdminPage from "./features/reservation/pages/ReservationAdminPage";
 import ReservationCreatePage from "./features/reservation/pages/ReservationCreatePage";
 import ReservationsPage from "./features/reservation/pages/ReservationsPage";
@@ -52,6 +54,16 @@ function App() {
           element={
             <ProtectedRoute>
               <MyPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Department */}
+        <Route
+          path="/admin/departments"
+          element={
+            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+              <DepartmentAdminPage />
             </ProtectedRoute>
           }
         />

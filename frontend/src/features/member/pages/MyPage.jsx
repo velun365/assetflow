@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../auth/context/AuthContext";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
 
@@ -12,8 +13,8 @@ const getErrorMessage = async (response, fallbackMessage) => {
 };
 
 const MyPage = () => {
-  const { user } = useContext(AuthContext);
-
+  const { user, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [memberInfo, setMemberInfo] = useState(null);
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -77,9 +78,7 @@ const MyPage = () => {
         );
       }
 
-      setMemberInfo((current) =>
-        current ? { ...current, email } : current,
-      );
+      setMemberInfo((current) => (current ? { ...current, email } : current));
       setCurrentPassword("");
       setMessage("회원 정보가 수정되었습니다.");
     } catch (error) {
@@ -119,12 +118,15 @@ const MyPage = () => {
       setNewPassword("");
       setNewPasswordConfirm("");
 
-      setMessage("비밀번호가 변경되었습니다.");
+      setUser(null);
+
+      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
+      navigate("/login", { replace: true });
     } catch (error) {
       setError(error.message);
     }
   };
-
+  const role = memberInfo?.role || user?.role;
   return (
     <div className="page">
       <div className="page-heading">
@@ -146,14 +148,27 @@ const MyPage = () => {
             <span>아이디</span>
             <strong>{memberInfo?.loginId || user?.loginId || "-"}</strong>
           </div>
+
           <div>
             <span>이름</span>
             <strong>{memberInfo?.name || user?.name || "-"}</strong>
           </div>
+
           <div>
-            <span>권한</span>
-            <strong>{memberInfo?.role || user?.role || "-"}</strong>
+            <span>소속 부서</span>
+            <strong>{memberInfo?.departmentName || "미지정"}</strong>
           </div>
+
+          {(role === "ADMIN" || role === "MANAGER") && (
+            <div>
+              <span>권한</span>
+              <strong
+                className={`role-badge role-badge--${role.toLowerCase()}`}
+              >
+                {role}
+              </strong>
+            </div>
+          )}
         </div>
       </section>
 
@@ -223,7 +238,9 @@ const MyPage = () => {
                   id="newPasswordConfirm"
                   type="password"
                   value={newPasswordConfirm}
-                  onChange={(event) => setNewPasswordConfirm(event.target.value)}
+                  onChange={(event) =>
+                    setNewPasswordConfirm(event.target.value)
+                  }
                   minLength={8}
                   maxLength={16}
                   required

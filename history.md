@@ -1716,3 +1716,52 @@ user.memberId;
 - 8~16자 비밀번호 validation 추가
 - /me 프론트 페이지 및 Header 진입점 추가
 - ADMIN / MANAGER / USER 모두 본인 정보 접근 가능
+
+
+## 2026-08-19
+
+### 부서 관리 기능 추가
+- Department CRUD 구현
+  - 부서 목록 조회
+  - 부서 등록
+  - 부서명 수정
+  - 부서 삭제
+- 사용 중인 부서는 삭제할 수 없도록 검증 추가
+- 관리자용 부서 관리 페이지 추가
+- `/admin/departments` 라우트 및 사이드바 메뉴 추가
+- ADMIN / MANAGER가 부서 관리 API에 접근 가능하도록 Security 설정
+
+### 관리자 회원 관리 개선
+- 회원 검색 응답에 부서 정보 추가
+  - departmentId
+  - departmentName
+- Querydsl 회원 검색에 Department LEFT JOIN 적용
+- 관리자 회원 수정 API 추가
+  - 소속 부서 지정 / 변경
+  - 회원 상태 ACTIVE / SUSPENDED 변경
+- 회원 Role 변경 기능은 제외
+- 관리자 회원 관리 페이지에 인라인 수정 기능 추가
+- ADMIN만 회원 정보를 수정할 수 있도록 권한 제한
+- MANAGER에서는 회원 수정 버튼을 노출하지 않도록 UI 개선
+
+### 회원 상태 및 Spring Security 연동
+- MemberStatus를 ACTIVE / SUSPENDED 기준으로 정리
+- CustomUserDetails의 `isEnabled()`와 MemberStatus 연동
+- SUSPENDED 회원 로그인 차단
+- Spring Security에서 SUSPENDED 로그인 시 `DisabledException`이 발생하는 것을 직접 확인
+- `DisabledException`과 일반 `AuthenticationException`을 구분하여 로그인 실패 메시지 처리
+  - 정지 계정: "계정이 정지되었습니다. 관리자에게 문의하세요."
+  - 일반 인증 실패: "아이디 또는 비밀번호가 일치하지 않습니다."
+
+### 로그인 요청 Validation 추가
+- LoginRequest의 loginId, password에 `@NotBlank` 적용
+- AuthController 로그인 요청에 `@Valid` 적용
+- 빈 아이디 / 비밀번호 요청이 인증 로직까지 진입하지 않도록 검증
+
+### 마이페이지 개선
+- 내 정보 조회 응답에 소속 부서명 추가
+- 마이페이지에서 자신의 소속 부서 확인 가능
+- ADMIN / MANAGER 권한을 배지 형태로 표시
+- 일반 USER는 권한 표시 생략
+- 기존 이메일 수정 / 비밀번호 변경 기능 유지
+- 비밀번호 변경 후 세션 종료 및 재로그인 처리 확인

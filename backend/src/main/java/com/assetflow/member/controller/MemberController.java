@@ -4,6 +4,7 @@ import com.assetflow.auth.security.CustomUserDetails;
 import com.assetflow.member.Member;
 import com.assetflow.member.dto.*;
 import com.assetflow.member.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,7 @@ public class MemberController {
     }
 
     @GetMapping("/me")
-    public MemberMyResponse getMyInfo(Authentication authentication){
+    public MemberMyResponse getMyInfo(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Member member = userDetails.getMember();
         return memberService.getMyInfo(member);
@@ -37,7 +38,7 @@ public class MemberController {
     @PatchMapping("/me")
     public void updateMyInfo(
             @Valid @RequestBody MemberUpdateRequest request,
-            Authentication authentication){
+            Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Member member = userDetails.getMember();
         memberService.updateMyInfo(member, request);
@@ -46,12 +47,23 @@ public class MemberController {
     @PatchMapping("/me/password")
     public void changePassword(
             @Valid @RequestBody PasswordChangeRequest request,
-            Authentication authentication
+            Authentication authentication,
+            HttpSession session
     ) {
         CustomUserDetails userDetails =
                 (CustomUserDetails) authentication.getPrincipal();
 
         Member member = userDetails.getMember();
         memberService.changePassword(member, request);
+        session.invalidate();
     }
+
+    @PatchMapping("/{memberId}")
+    public void updateMemberByAdmin(
+            @PathVariable Long memberId,
+            @Valid @RequestBody MemberAdminUpdateRequest request
+    ) {
+        memberService.updateMemberByAdmin(memberId, request);
+    }
+
 }

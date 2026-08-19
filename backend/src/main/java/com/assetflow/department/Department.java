@@ -22,5 +22,11 @@ public class Department {
     @OneToMany(mappedBy = "department")
     private List<Member> members = new ArrayList<>();
 
+    public Department(String name) {
+        this.name = name;
+    }
 
+    public void changeName(String name) {
+        this.name = name;
+    }
 }

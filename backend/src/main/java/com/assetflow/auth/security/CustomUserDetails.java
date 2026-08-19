@@ -1,6 +1,7 @@
 package com.assetflow.auth.security;
 
 import com.assetflow.member.Member;
+import com.assetflow.member.MemberStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +23,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(
-                new SimpleGrantedAuthority("ROLE_" + member.getRole().name())
+                new SimpleGrantedAuthority(
+                        "ROLE_" + member.getRole().name()
+                )
         );
     }
 
@@ -53,6 +56,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return member.getStatus() == MemberStatus.ACTIVE;
     }
 }

@@ -35,10 +35,27 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/csrf"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/members")
+                        .permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/members/me",
+                                "/api/members/me/password"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/members/*"
+                        ).hasRole("ADMIN")
 
                         .requestMatchers("/api/members/search")
                         .hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers("/api/departments/**")
+                        .hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/loans",

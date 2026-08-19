@@ -41,8 +41,20 @@ public class Member {
 
 
     public void changeDepartment(Department department) {
+        if (this.department != null) {
+            this.department.getMembers().remove(this);
+        }
+
         this.department = department;
-        department.getMembers().add(this);
+
+        if (department != null) {
+            department.getMembers().add(this);
+        }
+    }
+
+
+    public void changeStatus(MemberStatus status) {
+        this.status = status;
     }
 
     public Member(String loginId, String email, String password, String name) {

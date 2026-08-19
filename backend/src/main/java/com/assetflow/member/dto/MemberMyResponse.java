@@ -12,4 +12,5 @@ public class MemberMyResponse {
     private String email;
     private String name;
     private Role role;
+    private String departmentName;
 }

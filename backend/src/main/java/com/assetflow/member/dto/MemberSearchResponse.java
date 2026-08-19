@@ -1,6 +1,7 @@
 package com.assetflow.member.dto;
 
 import com.assetflow.member.MemberStatus;
+import com.assetflow.member.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,5 +12,6 @@ public class MemberSearchResponse {
     private String loginId;
     private String name;
     private MemberStatus status;
+    private Long departmentId;
     private String departmentName;
 }
