@@ -512,6 +512,23 @@ button:disabled {
   text-align: right !important;
 }
 
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.data-table td.table-inline-editor {
+  padding: 16px;
+  white-space: normal;
+  background: var(--slate-50);
+}
+
+.table-inline-editor .form-actions {
+  margin-top: 12px;
+}
+
 .table-action-link {
   display: inline-flex;
   min-height: 30px;

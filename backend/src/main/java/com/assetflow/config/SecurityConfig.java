@@ -53,6 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/members/search")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/asset-items")
+                        .hasAnyRole("ADMIN", "MANAGER")
+
                         .requestMatchers("/api/departments/**")
                         .hasAnyRole("ADMIN", "MANAGER")
 
@@ -71,7 +74,15 @@ public class SecurityConfig {
                                 "/api/categories",
                                 "/api/loans/*/return-approve"
                         ).hasAnyRole("ADMIN", "MANAGER")
-
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/assets/*",
+                                "/api/asset-items/*"
+                        ).hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/assets/*/image"
+                        ).hasAnyRole("ADMIN", "MANAGER")
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/assets/**",

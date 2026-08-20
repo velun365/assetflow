@@ -17,6 +17,7 @@ public class Asset {
     private Long id;
     private String name;
     private String explanation;
+    private String imagePath;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -26,6 +27,9 @@ public class Asset {
     private List<AssetItem> assetItems = new ArrayList<>();
 
     public void changeCategory(Category category) {
+        if (this.category != null) {
+            this.category.getAssets().remove(this);
+        }
         this.category = category;
         category.getAssets().add(this);
     }
@@ -36,7 +40,17 @@ public class Asset {
         changeCategory(category);
     }
 
-    //    @CreatedDate
-//    private LocalDateTime createDate;
+    public void update(String name, String explanation, Category category) {
+        this.name = name;
+        this.explanation = explanation;
+        changeCategory(category);
+    }
 
+    public void changeImage(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public void removeImage() {
+        this.imagePath = null;
+    }
 }

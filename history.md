@@ -1717,10 +1717,10 @@ user.memberId;
 - /me 프론트 페이지 및 Header 진입점 추가
 - ADMIN / MANAGER / USER 모두 본인 정보 접근 가능
 
-
 ## 2026-08-19
 
 ### 부서 관리 기능 추가
+
 - Department CRUD 구현
   - 부서 목록 조회
   - 부서 등록
@@ -1732,6 +1732,7 @@ user.memberId;
 - ADMIN / MANAGER가 부서 관리 API에 접근 가능하도록 Security 설정
 
 ### 관리자 회원 관리 개선
+
 - 회원 검색 응답에 부서 정보 추가
   - departmentId
   - departmentName
@@ -1745,6 +1746,7 @@ user.memberId;
 - MANAGER에서는 회원 수정 버튼을 노출하지 않도록 UI 개선
 
 ### 회원 상태 및 Spring Security 연동
+
 - MemberStatus를 ACTIVE / SUSPENDED 기준으로 정리
 - CustomUserDetails의 `isEnabled()`와 MemberStatus 연동
 - SUSPENDED 회원 로그인 차단
@@ -1754,14 +1756,30 @@ user.memberId;
   - 일반 인증 실패: "아이디 또는 비밀번호가 일치하지 않습니다."
 
 ### 로그인 요청 Validation 추가
+
 - LoginRequest의 loginId, password에 `@NotBlank` 적용
 - AuthController 로그인 요청에 `@Valid` 적용
 - 빈 아이디 / 비밀번호 요청이 인증 로직까지 진입하지 않도록 검증
 
 ### 마이페이지 개선
+
 - 내 정보 조회 응답에 소속 부서명 추가
 - 마이페이지에서 자신의 소속 부서 확인 가능
 - ADMIN / MANAGER 권한을 배지 형태로 표시
 - 일반 USER는 권한 표시 생략
 - 기존 이메일 수정 / 비밀번호 변경 기능 유지
 - 비밀번호 변경 후 세션 종료 및 재로그인 처리 확인
+
+## 2026-08-21
+
+- 자산(Asset) 수정 기능 추가
+- 자산 품목(AssetItem) 수정 기능 추가
+- 자산 대표 이미지 등록/조회/교체/삭제 기능 추가
+- 이미지 파일 로컬 저장 및 `/uploads/**` 정적 리소스 매핑 적용
+- ADMIN/MANAGER 이미지 관리 권한 분리
+- USER도 자산 상세 조회 가능하도록 프론트 접근 흐름 개선
+- 대여 신청 화면에서 자산 상세 이동 흐름 추가
+- AssetItem 관리자 전체 조회 권한 보완
+- Member 조회 시 LAZY/detached entity 문제 수정
+- 이미지 교체 시 새 이미지 저장 후 기존 이미지 삭제하도록 순서 개선
+- 일부 관리자 AssetItem UI/상태 처리 오류 수정

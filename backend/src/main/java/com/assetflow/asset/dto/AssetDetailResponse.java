@@ -12,6 +12,7 @@ public class AssetDetailResponse {
     private String name;
     private String explanation;
     private String categoryName;
+    private String imagePath;
     private int totalCount;
     private long availableCount;
     private List<AssetItemDetailResponse> assetItems;

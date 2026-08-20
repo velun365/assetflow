@@ -52,8 +52,15 @@ public class AssetItem {
     }
 
     public void changeAsset(Asset asset) {
+        if (this.asset != null) {
+            this.asset.getAssetItems().remove(this);
+        }
+
         this.asset = asset;
-        asset.getAssetItems().add(this);
+
+        if (asset != null) {
+            asset.getAssetItems().add(this);
+        }
     }
 
     public void dispose() {
@@ -72,5 +79,21 @@ public class AssetItem {
         this.assetItemStatus = AssetItemStatus.DISPOSED;
     }
 
+    public void update(
+            String serialNumber,
+            String location,
+            Asset asset
+    ) {
+        if (this.assetItemStatus == AssetItemStatus.RENTED) {
+            throw new IllegalStateException("대여 중인 자산 품목은 수정할 수 없습니다.");
+        }
 
+        if (this.assetItemStatus == AssetItemStatus.DISPOSED) {
+            throw new IllegalStateException("폐기된 자산 품목은 수정할 수 없습니다.");
+        }
+
+        this.serialNumber = serialNumber;
+        this.location = location;
+        changeAsset(asset);
+    }
 }

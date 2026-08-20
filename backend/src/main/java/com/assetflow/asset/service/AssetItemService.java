@@ -2,11 +2,7 @@ package com.assetflow.asset.service;
 
 import com.assetflow.asset.Asset;
 import com.assetflow.asset.AssetItem;
-import com.assetflow.asset.dto.AssetItemAdminResponse;
-import com.assetflow.asset.dto.AssetItemCreateRequest;
-import com.assetflow.asset.dto.AssetItemCreateResponse;
-import com.assetflow.asset.dto.AssetItemResponse;
-import com.assetflow.asset.dto.AssetItemSearchCondition;
+import com.assetflow.asset.dto.*;
 import com.assetflow.asset.repository.AssetItemRepository;
 import com.assetflow.asset.repository.AssetRepository;
 import com.assetflow.loan.LoanStatus;
@@ -14,6 +10,7 @@ import com.assetflow.loan.repository.LoanRepository;
 import com.assetflow.member.Member;
 import com.assetflow.reservation.ReservationStatus;
 import com.assetflow.reservation.repository.ReservationRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -128,5 +125,20 @@ public class AssetItemService {
                 })
                 .toList();
 
+    }
+
+    @Transactional
+    public void updateAssetItem(Long assetItemId, AssetItemUpdateRequest request) {
+        AssetItem assetItem = assetItemRepository.findById(assetItemId)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 자산 품목입니다."));
+
+        Asset asset = assetRepository.findById(request.getAssetId())
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 자산입니다."));
+
+        assetItem.update(
+                request.getSerialNumber(),
+                request.getLocation(),
+                asset
+        );
     }
 }

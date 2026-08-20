@@ -1,10 +1,6 @@
 package com.assetflow.asset.controller;
 
-import com.assetflow.asset.dto.AssetItemAdminResponse;
-import com.assetflow.asset.dto.AssetItemCreateRequest;
-import com.assetflow.asset.dto.AssetItemCreateResponse;
-import com.assetflow.asset.dto.AssetItemResponse;
-import com.assetflow.asset.dto.AssetItemSearchCondition;
+import com.assetflow.asset.dto.*;
 import com.assetflow.asset.service.AssetItemService;
 import com.assetflow.auth.security.CustomUserDetails;
 import com.assetflow.member.Member;
@@ -50,5 +46,13 @@ public class AssetItemController {
     @DeleteMapping("/{assetItemId}")
     public void deleteAssetItem(@PathVariable Long assetItemId){
        assetItemService.deleteAssetItem(assetItemId);
+    }
+
+    @PatchMapping("/{assetItemId}")
+    public void updateAssetItem(
+            @PathVariable Long assetItemId,
+            @Valid @RequestBody AssetItemUpdateRequest request
+    ) {
+        assetItemService.updateAssetItem(assetItemId, request);
     }
 }

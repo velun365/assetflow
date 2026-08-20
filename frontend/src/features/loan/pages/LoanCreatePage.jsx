@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import StatusBadge from "../../../shared/components/StatusBadge";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
 
@@ -164,6 +164,13 @@ function LoanCreatePage() {
                     대여 가능 {asset.availableCount}
                   </span>
                 </div>
+                <Link
+                  className="table-action-link"
+                  to={`/admin/assets/${asset.assetId}`}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  상세보기
+                </Link>
               </div>
             ))}
             {filteredAssets.length === 0 && (

@@ -103,8 +103,8 @@ public class MemberService {
                 managedMember.getEmail(),
                 managedMember.getName(),
                 managedMember.getRole(),
-                member.getDepartment() != null
-                        ? member.getDepartment().getName()
+                managedMember.getDepartment() != null
+                        ? managedMember.getDepartment().getName()
                         : null
         );
     }

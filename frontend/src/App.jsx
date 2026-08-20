@@ -90,7 +90,7 @@ function App() {
         <Route
           path="/admin/assets/:assetId"
           element={
-            <ProtectedRoute roles={["ADMIN", "MANAGER"]}>
+            <ProtectedRoute roles={["USER", "ADMIN", "MANAGER"]}>
               <AssetDetailPage />
             </ProtectedRoute>
           }
