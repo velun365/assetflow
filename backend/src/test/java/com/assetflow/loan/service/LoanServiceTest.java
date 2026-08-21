@@ -1,194 +1,224 @@
 package com.assetflow.loan.service;
 
-import com.assetflow.asset.*;
-import com.assetflow.asset.repository.AssetItemRepository;
-import com.assetflow.asset.repository.AssetRepository;
-import com.assetflow.asset.repository.CategoryRepository;
+import com.assetflow.asset.Asset;
+import com.assetflow.asset.AssetItem;
+import com.assetflow.asset.AssetItemStatus;
+import com.assetflow.asset.Category;
 import com.assetflow.loan.LoanStatus;
-import com.assetflow.loan.dto.*;
-import com.assetflow.loan.repository.LoanRepository;
+import com.assetflow.loan.dto.LoanCreateRequest;
+import com.assetflow.loan.dto.LoanCreateResponse;
+import com.assetflow.loan.dto.LoanReturnRequestResponse;
+import com.assetflow.loan.dto.LoanReturnResponse;
 import com.assetflow.member.Member;
-import com.assetflow.member.repository.MemberRepository;
-import com.assetflow.reservation.repository.ReservationRepository;
+import com.assetflow.reservation.dto.ReservationCreateRequest;
+import com.assetflow.reservation.service.ReservationService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Slf4j
 @Transactional
-
 class LoanServiceTest {
-    @Autowired
-    MemberRepository memberRepository;
-    @Autowired
-    CategoryRepository categoryRepository;
-    @Autowired
-    AssetRepository assetRepository;
 
-    @Autowired
-    AssetItemRepository assetItemRepository;
+    @PersistenceContext
+    EntityManager em;
 
     @Autowired
     LoanService loanService;
 
-//
-//    @Test
-//    void createLoan() {
-//        //given
-//        TestData data = testReady();
-//        LoanCreateRequest request = new LoanCreateRequest(
-//                data.member1.getId(),
-//                data.assetItem1.getId()
-//        );
-//
-//        //when
-//        LoanCreateResponse response = loanService.createLoan(member, request);
-//
-//        //then
-//        Assertions.assertThat(response.getLoanStatus()).isEqualTo(LoanStatus.RENTED);
-//        Assertions.assertThat(data.assetItem1.getAssetItemStatus()).isEqualTo(AssetItemStatus.RENTED);
-//
-//    }
-//
-//    @Test
-//    void returnLoan() {
-//        //given
-//        TestData data = testReady();
-//        LoanCreateRequest request = new LoanCreateRequest(
-//                data.member1.getId(),
-//                data.assetItem1.getId()
-//        );
-//        //when
-//        LoanCreateResponse loan = loanService.createLoan(request);
-//        loanService.requestReturn(loan.getLoanId(), data.member1.getId());
-//        LoanReturnResponse response = loanService.approveReturn(loan.getLoanId());
-//
-//        //then
-//        Assertions.assertThat(response.getLoanStatus()).isEqualTo(LoanStatus.RETURNED);
-//        Assertions.assertThat(data.assetItem1.getAssetItemStatus()).isEqualTo(AssetItemStatus.AVAILABLE);
-//    }
+    @Autowired
+    ReservationService reservationService;
 
-    @Test
-    void listAll() {
-        TestData data = testReady();
-        LoanCreateRequest request1 = new LoanCreateRequest(
-                data.member1.getId(),
-                data.assetItem1.getId()
+    Member member1;
+    Member member2;
+    Member member3;
+    AssetItem assetItem1;
+
+    @BeforeEach
+    void init() {
+        //초기값
+        member1 = new Member(
+                "testid1",
+                "testid1@gmail.com",
+                "test1234",
+                "테스터1"
         );
-        LoanCreateRequest request2 = new LoanCreateRequest(
-                data.member2.getId(),
-                data.assetItem2.getId()
+        member2 = new Member(
+                "testid2",
+                "testid2@gmail.com",
+                "test1234",
+                "테스터2"
         );
-        loanService.createLoan(request1);
-        loanService.createLoan(request2);
+        member3 = new Member(
+                "testid3",
+                "testid3@gmail.com",
+                "test1234",
+                "테스터3"
+        );
+        em.persist(member1);
+        em.persist(member2);
+        em.persist(member3);
 
-        List<LoanListResponse> response = loanService.listAll();
+        Category category1 = new Category("전자기기");
+        em.persist(category1);
 
-        Assertions.assertThat(response).hasSize(2);
-        Assertions.assertThat(response.get(0).getLoanStatus())
-                .isEqualTo(LoanStatus.RENTED);
-        Assertions.assertThat(response.get(1).getLoanStatus())
-                .isEqualTo(LoanStatus.RENTED);
+        Asset asset1 = new Asset("테스트노트북", "테스트물품", category1);
+        em.persist(asset1);
+
+        assetItem1 = new AssetItem("test-000", "테스트실 1층", asset1);
+        em.persist(assetItem1);
     }
 
     @Test
-    void findLoansByMember() {
-        TestData data = testReady();
-        LoanCreateRequest request1 = new LoanCreateRequest(
-                data.member1.getId(),
-                data.assetItem1.getId()
-        );
-        LoanCreateRequest request2 = new LoanCreateRequest(
-                data.member2.getId(),
-                data.assetItem2.getId()
-        );
-        loanService.createLoan(request1);
-        loanService.createLoan(request2);
+    void 대여하기() {
+        //given
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
 
-        List<MyLoanListResponse> response = loanService.findLoansByMember(data.member1.getId());
+        //when
+        LoanCreateResponse response = loanService.createLoan(member1, request);
 
-        Assertions.assertThat(response).hasSize(1);
-        Assertions.assertThat(response.get(0).getAssetItemId()).isEqualTo(data.assetItem1.getId());
-        Assertions.assertThat(response.get(0).getLoanStatus()).isEqualTo(LoanStatus.RENTED);
+        //then
+        assertEquals(
+                LoanStatus.RENTED,
+                response.getLoanStatus()
+        );
+        assertEquals(
+                AssetItemStatus.RENTED,
+                assetItem1.getAssetItemStatus()
+        );
+    }
+
+    @Test
+    void 반납요청하기() {
+        //given
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
+        LoanCreateResponse createResponse = loanService.createLoan(member1, request);
+        Long loanId = createResponse.getLoanId();
+
+        //when
+        LoanReturnRequestResponse returnResponse = loanService.requestReturn(loanId, member1);
+
+        //then
+        assertEquals(
+                LoanStatus.RETURN_REQUESTED,
+                returnResponse.getLoanStatus()
+        );
+    }
+
+    @Test
+    void 반납승인하기() {
+        //given
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
+        LoanCreateResponse createResponse = loanService.createLoan(member1, request);
+        Long loanId = createResponse.getLoanId();
+
+        loanService.requestReturn(loanId, member1);
+
+        //when
+        LoanReturnResponse returnResponse = loanService.approveReturn(loanId);
+
+        //then
+        assertEquals(
+                LoanStatus.RETURNED,
+                returnResponse.getLoanStatus()
+        );
+        assertEquals(
+                AssetItemStatus.AVAILABLE,
+                assetItem1.getAssetItemStatus()
+        );
+    }
+
+    @Test
+    void 타인이_반납요청하면_실패() {
+        //given
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
+        LoanCreateResponse createResponse = loanService.createLoan(member1, request);
+        Long loanId = createResponse.getLoanId();
+
+        //when, then
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> loanService.requestReturn(loanId, member2)
+        );
+
+        assertEquals(
+                "본인의 대여만 반납 요청할 수 있습니다.",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void READY_예약자는_대여가능() {
+        //given
+        //물품아이템
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
+
+        //대여1
+        LoanCreateResponse response1 = loanService.createLoan(member1, request);
+        Long loanId = response1.getLoanId();
+
+        //예약
+        ReservationCreateRequest reservationCreateRequest = new ReservationCreateRequest(assetItem1.getId());
+        reservationService.createReservation(member2, reservationCreateRequest);
+
+        //대여한 물품 반납요청
+        loanService.requestReturn(loanId, member1);
+        //대여한 물품 반납승인
+        loanService.approveReturn(loanId);
+
+        //when
+        LoanCreateResponse response2 = loanService.createLoan(member2, request);
+
+        //then
+        assertEquals(
+                LoanStatus.RENTED,
+                response2.getLoanStatus()
+        );
+        assertEquals(
+                AssetItemStatus.RENTED,
+                assetItem1.getAssetItemStatus()
+        );
 
     }
 
     @Test
-    void updateOverdueLoan() {
-    }
+    void READY_예약자가_아니면_대여할_수_없다(){
+        //given
+        //물품아이템
+        LoanCreateRequest request = new LoanCreateRequest(assetItem1.getId());
 
+        //대여1
+        LoanCreateResponse response1 = loanService.createLoan(member1, request);
+        Long loanId = response1.getLoanId();
 
-    private TestData testReady() {
-        Member member1 = new Member(
-                "test01",
-                "test01@naver.com",
-                "test123456",
-                "김철수"
-        );
-        Member member2 = new Member(
-                "test02",
-                "test02@naver.com",
-                "test123456",
-                "신짱구"
-        );
-        Category category1 = new Category(
-                "전자기기"
-        );
-        Category category2 = new Category(
-                "도서"
-        );
+        //예약
+        ReservationCreateRequest reservationCreateRequest = new ReservationCreateRequest(assetItem1.getId());
+        reservationService.createReservation(member2, reservationCreateRequest);
 
-        Asset asset1 = new Asset(
-                "삼성",
-                "이것은 갤럭시 핸드폰입니다.",
-                category1
-        );
-        Asset asset2 = new Asset(
-                "애플",
-                "이것은 애플 핸드폰입니다.",
-                category1
+        //대여한 물품 반납요청
+        loanService.requestReturn(loanId, member1);
+        //대여한 물품 반납승인
+        loanService.approveReturn(loanId);
+
+        //when, then
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> loanService.createLoan(member3, request)
         );
 
-        AssetItem assetItem1 = new AssetItem(
-                "SM-510",
-                "1층 전산실",
-                asset1
+        assertEquals(
+                "해당 요청자는 예약자가 아닙니다.",
+                exception.getMessage()
         );
 
-        AssetItem assetItem2 = new AssetItem(
-                "SM-520",
-                "2층 전산실",
-                asset2
-        );
-        memberRepository.save(member1);
-        memberRepository.save(member2);
-        categoryRepository.save(category1);
-        categoryRepository.save(category2);
-        assetRepository.save(asset1);
-        assetItemRepository.save(assetItem1);
-        assetRepository.save(asset2);
-        assetItemRepository.save(assetItem2);
-
-        return new TestData(member1, member2, assetItem1, assetItem2);
-    }
-
-    private static class TestData {
-        Member member1;
-        Member member2;
-        AssetItem assetItem1;
-        AssetItem assetItem2;
-
-        TestData(Member member1, Member member2, AssetItem assetItem1, AssetItem assetItem2) {
-            this.member1 = member1;
-            this.member2 = member2;
-            this.assetItem1 = assetItem1;
-            this.assetItem2 = assetItem2;
-        }
     }
 }

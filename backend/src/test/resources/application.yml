@@ -4,14 +4,19 @@ spring:
   application:
     name: assetflow
   datasource:
-    url: jdbc:mysql://localhost:3306/assetflow
+    url: jdbc:mysql://localhost:3306/assetflow_test
     username: user
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     open-in-view: false
     show-sql: true
     properties:
