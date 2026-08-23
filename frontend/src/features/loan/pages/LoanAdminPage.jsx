@@ -247,37 +247,36 @@ const LoanAdminPage = () => {
         <div className="table-scroll"><table className="data-table">
           <thead>
             <tr>
-              <th>대여번호</th>
               <th>회원</th>
               <th>자산명</th>
-              <th>품목번호</th>
               <th>대여일</th>
               <th>반납예정일</th>
               <th>실제반납일</th>
               <th>상태</th>
-              <th>처리</th>
+              <th className="data-table__action">처리</th>
             </tr>
           </thead>
 
           <tbody>
             {loans.map((loan) => (
               <tr key={loan.loanId}>
-                <td>{loan.loanId}</td>
                 <td className="data-table__primary">{loan.memberName}</td>
                 <td>{loan.assetName}</td>
-                <td>{loan.assetItemId}</td>
                 <td>{loan.loanDate}</td>
                 <td>{loan.dueDate}</td>
                 <td>{loan.returnDate ?? "미반납"}</td>
                 <td><StatusBadge status={loan.loanStatus} /></td>
-                <td>
+                <td className="data-table__action">
                   {loan.loanStatus === "RETURN_REQUESTED" ? (
-                    <button
-                      type="button"
-                      onClick={() => handleApproveReturn(loan.loanId)}
-                    >
-                      반납 승인
-                    </button>
+                    <div className="table-actions">
+                      <button
+                        type="button"
+                        className="table-action table-action--primary"
+                        onClick={() => handleApproveReturn(loan.loanId)}
+                      >
+                        반납 승인
+                      </button>
+                    </div>
                   ) : (
                     "-"
                   )}

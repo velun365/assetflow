@@ -12,12 +12,15 @@ const getErrorMessage = async (response, fallbackMessage) => {
   }
 };
 
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+$/.test(email);
+
 const MyPage = () => {
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const [memberInfo, setMemberInfo] = useState(null);
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
+  const [infoFieldErrors, setInfoFieldErrors] = useState({});
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
@@ -26,6 +29,7 @@ const MyPage = () => {
   const [passwordCurrent, setPasswordCurrent] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [passwordFieldErrors, setPasswordFieldErrors] = useState({});
   useEffect(() => {
     const loadInfo = async () => {
       try {
@@ -54,10 +58,28 @@ const MyPage = () => {
   }, []);
 
   const updateMyInfo = async () => {
-    try {
-      setError("");
-      setMessage("");
+    setError("");
+    setMessage("");
 
+    const validationErrors = {};
+
+    if (!email.trim()) {
+      validationErrors.email = "이메일을 입력해주세요.";
+    } else if (!isValidEmail(email)) {
+      validationErrors.email = "올바른 이메일 형식을 입력해주세요.";
+    }
+
+    if (!currentPassword.trim()) {
+      validationErrors.currentPassword = "현재 비밀번호를 입력해주세요.";
+    }
+
+    setInfoFieldErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    try {
       const csrfToken = await getCsrfToken();
 
       const response = await fetch("/api/members/me", {
@@ -80,20 +102,43 @@ const MyPage = () => {
 
       setMemberInfo((current) => (current ? { ...current, email } : current));
       setCurrentPassword("");
+      setInfoFieldErrors({});
       setMessage("회원 정보가 수정되었습니다.");
     } catch (error) {
       setError(error.message);
     }
   };
   const changePassword = async () => {
+    setError("");
+    setMessage("");
+
+    const validationErrors = {};
+
+    if (!passwordCurrent.trim()) {
+      validationErrors.passwordCurrent = "현재 비밀번호를 입력해주세요.";
+    }
+
+    if (!newPassword.trim()) {
+      validationErrors.newPassword = "새 비밀번호를 입력해주세요.";
+    } else if (newPassword.length < 8 || newPassword.length > 16) {
+      validationErrors.newPassword = "비밀번호는 8~16자로 입력해주세요.";
+    }
+
+    if (!newPasswordConfirm.trim()) {
+      validationErrors.newPasswordConfirm =
+        "새 비밀번호 확인을 입력해주세요.";
+    } else if (newPassword !== newPasswordConfirm) {
+      validationErrors.newPasswordConfirm =
+        "새 비밀번호가 일치하지 않습니다.";
+    }
+
+    setPasswordFieldErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     try {
-      setError("");
-      setMessage("");
-
-      if (newPassword !== newPasswordConfirm) {
-        throw new Error("새 비밀번호가 일치하지 않습니다.");
-      }
-
       const csrfToken = await getCsrfToken();
 
       const response = await fetch("/api/members/me/password", {
@@ -117,6 +162,7 @@ const MyPage = () => {
       setPasswordCurrent("");
       setNewPassword("");
       setNewPasswordConfirm("");
+      setPasswordFieldErrors({});
 
       setUser(null);
 
@@ -185,9 +231,26 @@ const MyPage = () => {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setInfoFieldErrors((current) => ({
+                      ...current,
+                      email: "",
+                    }));
+                    setError("");
+                  }}
+                  className={infoFieldErrors.email ? "input--error" : ""}
+                  aria-invalid={Boolean(infoFieldErrors.email)}
+                  aria-describedby={
+                    infoFieldErrors.email ? "my-email-error" : undefined
+                  }
                   required
                 />
+                {infoFieldErrors.email && (
+                  <p className="field-error-message" id="my-email-error">
+                    {infoFieldErrors.email}
+                  </p>
+                )}
               </div>
               <div className="form-field form-field--full">
                 <label htmlFor="currentPassword">현재 비밀번호</label>
@@ -195,9 +258,33 @@ const MyPage = () => {
                   id="currentPassword"
                   type="password"
                   value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  onChange={(event) => {
+                    setCurrentPassword(event.target.value);
+                    setInfoFieldErrors((current) => ({
+                      ...current,
+                      currentPassword: "",
+                    }));
+                    setError("");
+                  }}
+                  className={
+                    infoFieldErrors.currentPassword ? "input--error" : ""
+                  }
+                  aria-invalid={Boolean(infoFieldErrors.currentPassword)}
+                  aria-describedby={
+                    infoFieldErrors.currentPassword
+                      ? "my-current-password-error"
+                      : undefined
+                  }
                   required
                 />
+                {infoFieldErrors.currentPassword && (
+                  <p
+                    className="field-error-message"
+                    id="my-current-password-error"
+                  >
+                    {infoFieldErrors.currentPassword}
+                  </p>
+                )}
               </div>
             </div>
             <div className="form-actions">
@@ -216,9 +303,35 @@ const MyPage = () => {
                   id="passwordCurrent"
                   type="password"
                   value={passwordCurrent}
-                  onChange={(event) => setPasswordCurrent(event.target.value)}
+                  onChange={(event) => {
+                    setPasswordCurrent(event.target.value);
+                    setPasswordFieldErrors((current) => ({
+                      ...current,
+                      passwordCurrent: "",
+                    }));
+                    setError("");
+                  }}
+                  className={
+                    passwordFieldErrors.passwordCurrent ? "input--error" : ""
+                  }
+                  aria-invalid={Boolean(
+                    passwordFieldErrors.passwordCurrent,
+                  )}
+                  aria-describedby={
+                    passwordFieldErrors.passwordCurrent
+                      ? "my-password-current-error"
+                      : undefined
+                  }
                   required
                 />
+                {passwordFieldErrors.passwordCurrent && (
+                  <p
+                    className="field-error-message"
+                    id="my-password-current-error"
+                  >
+                    {passwordFieldErrors.passwordCurrent}
+                  </p>
+                )}
               </div>
               <div className="form-field form-field--full">
                 <label htmlFor="newPassword">새 비밀번호</label>
@@ -226,11 +339,36 @@ const MyPage = () => {
                   id="newPassword"
                   type="password"
                   value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
+                  onChange={(event) => {
+                    setNewPassword(event.target.value);
+                    setPasswordFieldErrors((current) => ({
+                      ...current,
+                      newPassword: "",
+                      newPasswordConfirm: "",
+                    }));
+                    setError("");
+                  }}
+                  className={
+                    passwordFieldErrors.newPassword ? "input--error" : ""
+                  }
+                  aria-invalid={Boolean(passwordFieldErrors.newPassword)}
+                  aria-describedby={
+                    passwordFieldErrors.newPassword
+                      ? "my-new-password-error"
+                      : undefined
+                  }
                   minLength={8}
                   maxLength={16}
                   required
                 />
+                {passwordFieldErrors.newPassword && (
+                  <p
+                    className="field-error-message"
+                    id="my-new-password-error"
+                  >
+                    {passwordFieldErrors.newPassword}
+                  </p>
+                )}
               </div>
               <div className="form-field form-field--full">
                 <label htmlFor="newPasswordConfirm">새 비밀번호 확인</label>
@@ -238,13 +376,39 @@ const MyPage = () => {
                   id="newPasswordConfirm"
                   type="password"
                   value={newPasswordConfirm}
-                  onChange={(event) =>
-                    setNewPasswordConfirm(event.target.value)
+                  onChange={(event) => {
+                    setNewPasswordConfirm(event.target.value);
+                    setPasswordFieldErrors((current) => ({
+                      ...current,
+                      newPasswordConfirm: "",
+                    }));
+                    setError("");
+                  }}
+                  className={
+                    passwordFieldErrors.newPasswordConfirm
+                      ? "input--error"
+                      : ""
+                  }
+                  aria-invalid={Boolean(
+                    passwordFieldErrors.newPasswordConfirm,
+                  )}
+                  aria-describedby={
+                    passwordFieldErrors.newPasswordConfirm
+                      ? "my-new-password-confirm-error"
+                      : undefined
                   }
                   minLength={8}
                   maxLength={16}
                   required
                 />
+                {passwordFieldErrors.newPasswordConfirm && (
+                  <p
+                    className="field-error-message"
+                    id="my-new-password-confirm-error"
+                  >
+                    {passwordFieldErrors.newPasswordConfirm}
+                  </p>
+                )}
               </div>
             </div>
             <div className="form-actions">

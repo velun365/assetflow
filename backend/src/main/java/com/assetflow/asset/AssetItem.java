@@ -17,6 +17,7 @@ public class AssetItem {
     @GeneratedValue
     @Column(name = "asset_item_id")
     private Long id;
+    @Column(nullable = false, unique = true)
     private String serialNumber;
     private String location;
 

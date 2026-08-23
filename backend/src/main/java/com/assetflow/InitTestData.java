@@ -40,6 +40,14 @@ public class InitTestData {
 
         @Transactional
         public void init() {
+            Long memberCount = em.createQuery(
+                    "select count(m) from Member m",
+                    Long.class
+            ).getSingleResult();
+
+            if (memberCount > 0) {
+                return;
+            }
             // =========================
             // 회원
             // =========================

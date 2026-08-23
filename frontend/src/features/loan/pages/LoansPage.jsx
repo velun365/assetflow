@@ -80,20 +80,18 @@ const LoansPage = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>대여번호</th>
                   <th>자산명</th>
                   <th>시리얼번호</th>
                   <th>대여일</th>
                   <th>반납예정일</th>
                   <th>상태</th>
-                  <th>처리</th>
+                  <th className="data-table__action">처리</th>
                 </tr>
               </thead>
 
               <tbody>
                 {loans.map((loan) => (
                   <tr key={loan.loanId}>
-                    <td>{loan.loanId}</td>
                     <td className="data-table__primary">{loan.assetName}</td>
                     <td>{loan.serialNumber}</td>
                     <td>{loan.loanDate}</td>
@@ -101,14 +99,17 @@ const LoansPage = () => {
                     <td>
                       <StatusBadge status={loan.loanStatus} />
                     </td>
-                    <td>
+                    <td className="data-table__action">
                       {["RENTED", "OVERDUE"].includes(loan.loanStatus) ? (
-                        <button
-                          type="button"
-                          onClick={() => requestReturn(loan.loanId)}
-                        >
-                          반납 요청
-                        </button>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="table-action table-action--primary"
+                            onClick={() => requestReturn(loan.loanId)}
+                          >
+                            반납 요청
+                          </button>
+                        </div>
                       ) : (
                         "-"
                       )}

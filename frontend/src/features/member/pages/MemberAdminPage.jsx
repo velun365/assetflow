@@ -210,15 +210,21 @@ function MemberAdminPage() {
 
       <div className="table-card">
         <div className="table-scroll">
-          <table className="data-table">
+          <table className="data-table member-admin-table">
+            <colgroup>
+              <col className="member-admin-table__login-id" />
+              <col className="member-admin-table__name" />
+              <col className="member-admin-table__status" />
+              <col className="member-admin-table__department" />
+              <col className="member-admin-table__action" />
+            </colgroup>
             <thead>
               <tr>
-                <th>회원번호</th>
                 <th>아이디</th>
                 <th>이름</th>
                 <th>상태</th>
                 <th>부서</th>
-                <th>관리</th>
+                <th className="data-table__action">관리</th>
               </tr>
             </thead>
 
@@ -228,8 +234,6 @@ function MemberAdminPage() {
 
                 return (
                   <tr key={member.memberId}>
-                    <td>{member.memberId}</td>
-
                     <td className="data-table__primary">{member.loginId}</td>
 
                     <td>{member.name}</td>
@@ -237,6 +241,7 @@ function MemberAdminPage() {
                     <td>
                       {isEditing ? (
                         <select
+                          className="table-edit-select"
                           value={editStatus}
                           onChange={(e) => setEditStatus(e.target.value)}
                         >
@@ -251,6 +256,7 @@ function MemberAdminPage() {
                     <td>
                       {isEditing ? (
                         <select
+                          className="table-edit-select"
                           value={editDepartmentId}
                           onChange={(e) => setEditDepartmentId(e.target.value)}
                         >
@@ -270,28 +276,36 @@ function MemberAdminPage() {
                       )}
                     </td>
 
-                    <td>
+                    <td className="data-table__action">
                       {user?.role === "ADMIN" &&
                         (isEditing ? (
-                          <>
+                          <div className="table-actions">
                             <button
                               type="button"
+                              className="table-action table-action--primary"
                               onClick={() => updateMember(member.memberId)}
                             >
                               저장
                             </button>
 
-                            <button type="button" onClick={cancelEdit}>
+                            <button
+                              type="button"
+                              className="table-action"
+                              onClick={cancelEdit}
+                            >
                               취소
                             </button>
-                          </>
+                          </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => startEdit(member)}
-                          >
-                            수정
-                          </button>
+                          <div className="table-actions">
+                            <button
+                              type="button"
+                              className="table-action"
+                              onClick={() => startEdit(member)}
+                            >
+                              수정
+                            </button>
+                          </div>
                         ))}
                     </td>
                   </tr>

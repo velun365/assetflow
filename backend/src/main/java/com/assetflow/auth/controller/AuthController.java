@@ -61,6 +61,10 @@ public class AuthController {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
 
+        if (httpRequest.getSession(false) != null) {
+            httpRequest.changeSessionId();
+        }
+
         securityContextRepository.saveContext(
                 context,
                 httpRequest,

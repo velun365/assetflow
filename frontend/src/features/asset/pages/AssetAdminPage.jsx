@@ -231,7 +231,6 @@ function AssetAdminPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>번호</th>
                 <th>자산명</th>
                 <th>카테고리</th>
                 <th>보유수량</th>
@@ -243,7 +242,6 @@ function AssetAdminPage() {
               {assets.map((asset) => (
                 <Fragment key={asset.assetId}>
                   <tr>
-                    <td>{asset.assetId}</td>
                     <td className="data-table__primary">{asset.name}</td>
                     <td>{asset.categoryName}</td>
                     <td>{asset.totalCount}</td>
@@ -270,7 +268,7 @@ function AssetAdminPage() {
                     <tr>
                       <td
                         className="table-inline-editor admin-form"
-                        colSpan="6"
+                        colSpan="5"
                       >
                         <div className="form-grid">
                           <div className="form-field">
@@ -333,13 +331,14 @@ function AssetAdminPage() {
                         <div className="form-actions">
                           <button
                             type="button"
-                            className="btn--secondary"
+                            className="table-action"
                             onClick={cancelEdit}
                           >
                             취소
                           </button>
                           <button
                             type="button"
+                            className="table-action table-action--primary"
                             onClick={() => updateAsset(asset.assetId)}
                           >
                             저장

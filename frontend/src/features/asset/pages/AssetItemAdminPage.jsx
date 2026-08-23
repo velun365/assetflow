@@ -170,7 +170,7 @@ const AssetItemAdminPage = () => {
 
       if (!response.ok) {
         throw new Error(
-          await getErrorMessage(response, "자산 아이템 삭제에 실패했습니다."),
+          await getErrorMessage(response, "자산 품목 폐기에 실패했습니다."),
         );
       }
 
@@ -236,7 +236,6 @@ const AssetItemAdminPage = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>품목번호</th>
                 <th>자산명</th>
                 <th>시리얼번호</th>
                 <th>위치</th>
@@ -248,7 +247,6 @@ const AssetItemAdminPage = () => {
               {assetItems.map((assetItem) => (
                 <Fragment key={assetItem.assetItemId}>
                   <tr>
-                    <td>{assetItem.assetItemId}</td>
                     <td className="data-table__primary">
                       {assetItem.assetName}
                     </td>
@@ -280,7 +278,7 @@ const AssetItemAdminPage = () => {
                                 deleteAssetItem(assetItem.assetItemId)
                               }
                             >
-                              삭제
+                              폐기
                             </button>
                           )}
                       </div>
@@ -290,7 +288,7 @@ const AssetItemAdminPage = () => {
                     <tr>
                       <td
                         className="table-inline-editor admin-form"
-                        colSpan="6"
+                        colSpan="5"
                       >
                         <div className="form-grid">
                           <div className="form-field">
@@ -358,13 +356,14 @@ const AssetItemAdminPage = () => {
                         <div className="form-actions">
                           <button
                             type="button"
-                            className="btn--secondary"
+                            className="table-action"
                             onClick={cancelEdit}
                           >
                             취소
                           </button>
                           <button
                             type="button"
+                            className="table-action table-action--primary"
                             onClick={() =>
                               updateAssetItem(assetItem.assetItemId)
                             }

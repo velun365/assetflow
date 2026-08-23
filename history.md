@@ -1,5 +1,19 @@
 # AssetFlow 개발일지
 
+> 이 문서는 구현 내역뿐 아니라 **당시의 설계 고민, 실수, 트러블슈팅, 복습 포인트**를 남기는 개인 학습 기록이다.  
+> 초기 기록의 일부 내용은 이후 구조 개선으로 변경되었을 수 있으므로, 실제 현재 구조는 뒤쪽의 최신 날짜 기록을 우선해서 본다.
+
+## 빠르게 복습할 핵심 주제
+
+- **JPA**: 연관관계, LAZY, 영속성 컨텍스트, dirty checking, detached/managed
+- **Spring Security**: 세션 인증, `Authentication`, `SecurityContext`, CSRF, Role과 Ownership
+- **Querydsl**: 동적 검색, DTO projection, count query, 페이징
+- **비즈니스 로직**: 대여/반납 상태 전이, 예약 WAITING/READY 우선권
+- **테스트**: Given-When-Then, `assertThrows`, 테스트 DB 분리, 핵심 상태 전이 검증
+- **프론트 연동**: React Router, AuthContext, ProtectedRoute, fetch/CSRF, 관리자/사용자 UI 분리
+
+---
+
 ## Day 1 - 프로젝트 초기 세팅
 
 ### 완료
@@ -27,9 +41,9 @@
 
 ### 설계 고민
 
-#### Asset 과 AssetItem 분리
+#### Asset과 AssetItem 분리
 
-초기에는 Asset 엔티티에 수량(count)을 저장하는 방식을 고려습니다.
+초기에는 Asset 엔티티에 수량(count)을 저장하는 방식을 고려했습니다.
 
 하지만 실제 자산은 동일 모델이라도 개별 관리가 필요하다고 판단하여 Asset과 AssetItem을 분리하였다.
 
@@ -72,81 +86,7 @@
 - 중복 회원 검증은 이름이 아니라 loginId 기준으로 해야 한다.
 - `assertThrows`는 예외 발생을 검증하는 테스트다.
 
-# AssetFlow 개발일지
-
-## Day 1 - 프로젝트 초기 세팅
-
-### 완료
-
-- Spring Boot 프로젝트 생성
-- MySQL 연동
-- GitHub 저장소 생성 및 연결
-
-### 목표
-
-- 프로젝트 구조 설계
-- 도메인 정의
-
----
-
-## Day 2 - 도메인 엔티티 설계
-
-### 완료
-
-- Member 엔티티 초안 작성
-- Department 엔티티 초안 작성
-- Asset 엔티티 초안 작성
-- Category 엔티티 초안 작성
-- AssetItem 엔티티 초안 작성
-
-### 설계 고민
-
-#### Asset 과 AssetItem 분리
-
-초기에는 Asset 엔티티에 수량(count)을 저장하는 방식을 고려습니다.
-
-하지만 실제 자산은 동일 모델이라도 개별 관리가 필요하다고 판단하여 Asset과 AssetItem을 분리하였다.
-
-예시
-
-- Asset : MacBook Pro 14인치
-- AssetItem : MBP-001
-- AssetItem : MBP-002
-
----
-
-## Day 3 - ERD 정리 및 MemberService 구현
-
-### 완료
-
-- ERD 초안 정리
-- FK 위치 정리
-  - Department 1:N Member
-  - Category 1:N Asset
-  - Asset 1:N AssetItem
-  - Member 1:N Loan
-  - AssetItem 1:N Loan
-- Member 엔티티에 loginId 추가
-- MemberRepository 생성
-- MemberService 구현
-  - 회원가입
-  - 중복 loginId 검증
-  - 회원 목록 조회
-  - 회원 단건 조회
-- MemberServiceTest 작성
-  - 회원가입 성공 테스트
-  - 중복 회원 예외 테스트
-
-### 오늘 배운 것
-
-- `@ManyToOne` 쪽이 FK를 가진다.
-- `@JoinColumn`은 FK 컬럼명을 지정할 때 사용한다.
-- `@Column`은 일반 컬럼에 사용한다.
-- 단방향 매핑만으로도 Repository 조회가 가능하다.
-- 중복 회원 검증은 이름이 아니라 loginId 기준으로 해야 한다.
-- `assertThrows`는 예외 발생을 검증하는 테스트다.
-
-### 부족한 점 / 추후 학습 필요
+### 당시 기준 부족한 점 / 추후 학습
 
 - `@RequestBody`, `@ResponseBody`, `@RestController`의 차이를 더 익숙하게 만들 필요가 있다.
 - DTO와 Entity를 언제, 왜 분리하는지 반복 학습이 필요하다.
@@ -196,7 +136,7 @@
 - LAZY 연관관계 컬렉션에 접근할 때 트랜잭션 범위가 중요하다.
 - `LazyInitializationException`은 트랜잭션/영속성 컨텍스트 밖에서 지연 로딩 객체에 접근할 때 발생할 수 있다.
 
-### 부족한 점 / 추후 학습 필요
+### 당시 기준 부족한 점 / 추후 학습
 
 - `ManyToOne` 관계에서 DTO에 왜 Entity가 아니라 id를 받는지 더 반복해서 익숙해질 필요가 있다.
 - `categoryId`, `assetId`처럼 이전 API 응답의 id를 다음 요청에서 사용하는 흐름이 아직 낯설다.
@@ -254,7 +194,7 @@
 - 대여 생성은 단순 저장이 아니라 AssetItem 상태 변경까지 함께 처리해야 한다.
 - 반납은 Loan 상태와 AssetItem 상태를 함께 변경해야 한다.
 - `POST`는 생성/상태 변경에 사용하고, `GET`은 조회에 사용한다.
-- URL PathVariable 방식과 RequestBody DTO 방식의 차이를 이해했다.x
+- URL PathVariable 방식과 RequestBody DTO 방식의 차이를 이해했다.
 
 ## Day 7 - 대여 조회 및 예약 기능 구현
 
@@ -303,7 +243,7 @@
 - 회원 1명은 여러 예약을 가질 수 있으므로 `Optional<Reservation>`이 아니라 `List<Reservation>`으로 조회해야 한다.
 - 조회 결과가 없는 경우에는 예외보다 빈 리스트 `[]` 반환이 자연스러울 수 있다.
 
-### 부족한 점 / 추후 학습 필요
+### 당시 기준 부족한 점 / 추후 학습
 
 - `mappedBy`와 `@JoinColumn`의 차이를 반복해서 복습할 필요가 있다.
 - 생성 API와 조회 API 흐름을 헷갈리는 경우가 있다.
@@ -336,7 +276,7 @@
 - Spring Data JPA 메서드 이름에 OrderByReservedAtAsc를 붙이면 예약 순서를 보장할 수 있다.
 - setter 대신 markOverdue(), completed(), ready() 같은 도메인 메서드로 상태를 변경하는 것이 더 자연스럽다.
 
-### 부족한 점 / 추후 개선 필요
+### 당시 기준 부족한 점 / 추후 개선
 
 - 예약 우선권 로직은 구현했지만, `get(0)`에 의존하므로 조회 정렬 조건이 반드시 유지되어야 한다.
 - READY 상태 예약자가 일정 시간 안에 대여하지 않을 경우 만료 처리하는 정책이 아직 없다.
@@ -371,7 +311,7 @@
 - Long id, Enum 값은 @NotNull을 사용한다.
 - 잘못된 enum 문자열은 @NotNull 검증이 아니라 JSON 역직렬화 단계에서 예외가 발생할 수 있다.
 
-### 부족한 점 / 추후 개선 필요
+### 당시 기준 부족한 점 / 추후 개선
 
 - 모든 Controller에 @Valid가 빠짐없이 적용됐는지 재확인 필요
 - Request DTO별 검증 어노테이션이 적절한지 재검토 필요
@@ -411,7 +351,7 @@
 - `existsBy...`는 조건에 맞는 데이터 존재 여부를 boolean으로 확인할 때 사용한다.
 - WAITING/READY 예약은 아직 살아있는 예약이므로 중복 예약 방지 대상이다.
 
-### 부족한 점 / 추후 개선
+### 당시 기준 부족한 점 / 추후 개선
 
 - Validation 메시지가 아직 DTO에 직접 작성되어 있어 추후 messages.properties 분리 가능
 - ErrorCode enum / CustomException 구조는 아직 미적용
@@ -445,7 +385,7 @@
 - `assertThatThrownBy()`를 사용한 예외 테스트 학습
 - Request DTO 테스트 생성을 위해 `@AllArgsConstructor` 적용
 
-### 부족한 점 / 추후 개선
+### 당시 기준 부족한 점 / 추후 개선
 
 - 테스트 데이터 생성 코드가 중복되어 추후 TestFixture로 분리 필요
 - 테스트 메서드명이 아직 더 명확해질 필요 있음
@@ -486,7 +426,7 @@
 - `hasText()`는 문자열 조건이 있을 때만 검색 조건을 추가하기 위해 사용한다.
 - enum 조건은 `hasText()`가 아니라 `status != null`로 검사해야 한다.
 
-### 부족한 점 / 추후 개선
+### 당시 기준 부족한 점 / 추후 개선
 
 - 현재 Querydsl 검색은 Member에만 적용되어 있다.
 - Asset, Loan, Reservation 검색 API에도 Querydsl 적용 필요
@@ -531,7 +471,7 @@
 - 기간 검색은 From에는 `goe`, To에는 `loe`를 사용한다.
 - countQuery에는 정렬을 넣지 않는다.
 
-### 부족한 점 / 추후 개선
+### 당시 기준 부족한 점 / 추후 개선
 
 - Reservation 검색 API 최종 Postman 테스트 필요
 - 검색 메서드 이름을 `searchComplex`에서 도메인별 명확한 이름으로 리팩토링 필요
@@ -563,7 +503,7 @@
 - Spring의 `Page` 응답에서 실제 조회 결과는 `content`에 들어 있다.
 - Git 저장소의 `.git` 폴더를 상위 루트로 옮기면 기존 커밋 이력을 유지하면서 모노레포 구조로 변경할 수 있다.
 
-### 부족한 점 / 추후 개선
+### 당시 기준 부족한 점 / 추후 개선
 
 - 회원 검색 시 빈 조건을 쿼리스트링에서 제외하도록 개선 필요
 - 검색 버튼 및 실제 검색 API 호출 흐름 최종 점검 필요
@@ -572,61 +512,65 @@
 - 자산, 자산품목, 대여, 예약 화면 구현 필요
 - 프로젝트 루트 README를 백엔드/프론트 통합 구조에 맞게 수정 필요
 
-Day 15 - AssetItem 관리 및 React API 연동
-완료
-AssetItem 조회 API 구현
-GET /api/asset-items
-AssetItem 목록 조회
-Response DTO 반환
-assetItemId
-assetName
-serialNumber
-location
-assetItemStatus
-assetId
-AssetItem 폐기 기능 구현
-물리 삭제 대신 DISPOSED 상태로 변경
-dispose() 도메인 메서드 추가
-대여 중(RENTED)인 자산 품목은 폐기 불가
-Reservation 상태 변경 정책 보완
-WAITING → READY
-READY → COMPLETED
-WAITING / READY → CANCELED
-완료된 예약은 취소 불가
-이미 취소된 예약은 중복 취소 불가
-React AssetItemPage 구현
-useState를 사용하여 자산 품목 목록 관리
-useEffect를 사용하여 최초 렌더링 시 조회
-fetch("/api/asset-items")로 백엔드 API 연동
-조회 결과 화면 출력
-자산명
-위치
-시리얼 번호
-상태
-Vite Proxy 적용
-/api 요청을 Spring Boot(8080)로 전달
-CORS 문제 해결
-오늘 배운 것
-React Hook(useState, useEffect)은 반드시 컴포넌트 내부에서 호출해야 한다.
-fetch()는 Promise를 반환한다.
-async/await는 Promise를 동기 코드처럼 읽기 쉽게 작성하는 문법이다.
-await response.json()도 Promise를 반환하므로 await가 필요하다.
-try-catch를 사용하면 네트워크 예외를 처리할 수 있다.
-useEffect(..., [])는 컴포넌트 최초 렌더링 시 한 번만 실행된다.
-map()을 이용해 배열 데이터를 화면에 출력할 수 있다.
-Vite Proxy를 사용할 경우 fetch("/api/...") 형태로 요청해야 한다.
-부족한 점 / 추후 개선
-AssetItem 등록 화면 구현
-AssetItem 폐기 버튼 및 API 연동
-AssetItem 목록을 Table UI로 개선
-로딩 상태(loading) 관리
-공통 API 호출 함수 분리
-axios 도입 여부 검토
-AssetItem 검색 기능 추가
+## Day 15 (1) - AssetItem 관리 및 React API 연동
 
-## Day 15 - React 프론트엔드 연동 및 프로젝트 구조 통합
+### 완료
 
-[Frontend]
+- AssetItem 조회 API 구현
+  - `GET /api/asset-items`
+  - AssetItem 목록 조회
+  - Response DTO 반환
+    - assetItemId
+    - assetName
+    - serialNumber
+    - location
+    - assetItemStatus
+    - assetId
+- AssetItem 폐기 기능 구현
+  - 물리 삭제 대신 `DISPOSED` 상태로 변경
+  - `dispose()` 도메인 메서드 추가
+  - 대여 중(`RENTED`)인 자산 품목은 폐기 불가
+- Reservation 상태 변경 정책 보완
+  - `WAITING → READY`
+  - `READY → COMPLETED`
+  - `WAITING / READY → CANCELED`
+  - 완료된 예약은 취소 불가
+  - 이미 취소된 예약은 중복 취소 불가
+- React `AssetItemPage` 구현
+  - `useState`로 자산 품목 목록 관리
+  - `useEffect`로 최초 렌더링 시 조회
+  - `fetch("/api/asset-items")`로 백엔드 API 연동
+  - 자산명, 위치, 시리얼번호, 상태 출력
+- Vite Proxy 적용
+  - `/api` 요청을 Spring Boot(8080)로 전달
+  - 개발 환경 CORS 문제 해결
+
+### 배운 점
+
+- React Hook(`useState`, `useEffect`)은 컴포넌트 내부에서 호출한다.
+- `fetch()`는 Promise를 반환한다.
+- `async/await`는 Promise 기반 코드를 순차적으로 읽기 쉽게 작성하는 문법이다.
+- `response.json()`도 Promise를 반환하므로 `await`가 필요하다.
+- `try-catch`로 네트워크 예외를 처리할 수 있다.
+- `useEffect(..., [])`는 컴포넌트 최초 렌더링 시 한 번 실행된다.
+- `map()`으로 배열 데이터를 반복 렌더링할 수 있다.
+- Vite Proxy를 사용할 경우 프론트에서는 `fetch("/api/...")` 형태로 요청할 수 있다.
+
+### 당시 기준 남은 과제
+
+- AssetItem 등록 화면 구현
+- AssetItem 폐기 버튼 및 API 연동
+- AssetItem 목록 Table UI 개선
+- 로딩 상태 관리
+- 공통 API 호출 함수 분리 검토
+- axios 도입 여부 검토
+- AssetItem 검색 기능 추가
+
+---
+
+## Day 15 (2) - 예약 생성 화면 및 프론트 연동
+
+### Frontend
 
 - 예약 생성 페이지 구현
 - 예약 생성 라우팅 및 목록 페이지 이동 처리
@@ -638,7 +582,7 @@ AssetItem 검색 기능 추가
 - 자산 미선택 시 제출 검증 추가
 - 예약 실패 예외 처리 추가
 
-[학습/트러블슈팅]
+### 학습 / 트러블슈팅
 
 - useEffect는 페이지 진입 시 조회 요청에 사용
 - handleSubmit은 사용자 제출 시 등록 요청에 사용
@@ -818,9 +762,7 @@ AssetItem 검색 기능 추가
 Cannot read properties of null (reading 'assetItems')
 ```
 
-## 2026-08-05 ~ 2026-08-06
-
-## 예약 대기열 우선순위 및 취소 로직 보완
+## 2026-08-05 ~ 2026-08-06 - 예약 대기열 우선순위 및 취소 로직 보완
 
 ### 구현 내용
 
@@ -858,9 +800,7 @@ Cannot read properties of null (reading 'assetItems')
 
 ---
 
-## 2026-08-07 ~ 2026-08-16
-
-## Spring Security 세션 인증 / 인가 / CSRF / 프론트 인증 상태 연동
+## 2026-08-07 ~ 2026-08-16 - Spring Security 세션 인증 / 인가 / CSRF / 프론트 인증 상태 연동
 
 ### 구현 배경
 
@@ -1306,9 +1246,7 @@ useEffect(() => {
 
 ---
 
-## 2026-08-16
-
-## 로그인 사용자 소유권 검증 보완
+## 2026-08-16 - 로그인 사용자 소유권 검증 보완
 
 ### 문제 발견
 
@@ -1770,16 +1708,289 @@ user.memberId;
 - 기존 이메일 수정 / 비밀번호 변경 기능 유지
 - 비밀번호 변경 후 세션 종료 및 재로그인 처리 확인
 
-## 2026-08-21
+## 2026-08-21 - 자산 관리 보완 / 대표 이미지 / 핵심 테스트 정비
+
+### 자산 및 자산 품목 수정
 
 - 자산(Asset) 수정 기능 추가
+  - 자산명
+  - 설명
+  - 카테고리 변경
 - 자산 품목(AssetItem) 수정 기능 추가
-- 자산 대표 이미지 등록/조회/교체/삭제 기능 추가
-- 이미지 파일 로컬 저장 및 `/uploads/**` 정적 리소스 매핑 적용
-- ADMIN/MANAGER 이미지 관리 권한 분리
-- USER도 자산 상세 조회 가능하도록 프론트 접근 흐름 개선
-- 대여 신청 화면에서 자산 상세 이동 흐름 추가
-- AssetItem 관리자 전체 조회 권한 보완
-- Member 조회 시 LAZY/detached entity 문제 수정
-- 이미지 교체 시 새 이미지 저장 후 기존 이미지 삭제하도록 순서 개선
-- 일부 관리자 AssetItem UI/상태 처리 오류 수정
+  - 시리얼번호
+  - 위치
+  - 소속 Asset 변경
+- `RENTED`, `DISPOSED` 상태의 AssetItem 수정 제한
+- 관리자 AssetItem UI에서 상태별 수정/폐기 가능 여부를 백엔드 정책과 맞춤
+
+### 대표 이미지 기능
+
+- 자산당 대표 이미지 0~1개 구조 적용
+- 자산 등록 시 선택적 이미지 업로드
+- 자산 상세에서 이미지 조회
+- 이미지가 없으면 기존 `AF` placeholder 유지
+- ADMIN/MANAGER 이미지 교체 가능
+- ADMIN만 이미지 삭제 가능
+- 로컬 파일 시스템 `uploads/assets` 사용
+- UUID 기반 저장 파일명 적용
+- `/uploads/**` 정적 리소스 매핑 및 Vite Proxy 적용
+- 업로드 크기 제한
+  - 파일 최대 5MB
+  - 요청 최대 6MB
+- 이미지 교체 순서를 `새 이미지 저장 → imagePath 변경 → 기존 이미지 삭제`로 변경
+- 새 파일 저장 실패 시 기존 이미지부터 사라지는 직접적인 위험을 줄임
+
+### 사용자 자산 상세 흐름
+
+- 일반 USER도 자산 상세 조회 가능하도록 프론트 접근 권한 조정
+- 대여 신청 화면에서 자산 상세 화면으로 이동할 수 있도록 흐름 추가
+- 관리자용 수정/이미지 관리 UI는 Role에 따라 노출
+- 프론트 Route 접근 제어와 백엔드 Security 인가를 별도로 점검
+
+### 권한 / JPA 오류 보완
+
+- USER가 관리자용 `GET /api/asset-items` 전체 목록을 직접 조회하지 못하도록 백엔드 권한 보완
+- 사용자용 AssetItem 조회는 유지
+- `MemberService.getMyInfo()`에서 세션 principal의 detached Member 연관관계를 직접 접근하지 않고, 현재 트랜잭션에서 다시 조회한 managed Member를 사용하도록 수정
+- `open-in-view: false` 환경에서 LAZY 연관관계 접근 시 영속 상태가 중요하다는 점을 다시 확인
+- `IllegalArgumentException`이 500으로 처리될 수 있던 부분을 공통 400 응답 처리에 포함
+
+### 테스트 환경 분리
+
+기존에는 개발 실행과 테스트 실행이 모두 같은 MySQL `assetflow` DB를 사용하고,
+`ddl-auto: create` 설정 때문에 테스트 실행 시 개발 DB를 초기화할 위험이 있었다.
+
+개선 후:
+
+```text
+개발 환경
+DB: assetflow
+ddl-auto: update
+
+테스트 환경
+DB: assetflow_test
+ddl-auto: create-drop
+```
+
+- MySQL에 `assetflow_test` 테스트 전용 DB 생성
+- `src/test/resources/application.yml`에서 테스트 DB 사용
+- 테스트 종료 시 테스트 스키마를 정리하도록 `create-drop` 적용
+- 개발 실행에서는 기존 데이터를 유지하도록 `ddl-auto: update` 적용
+
+### 테스트 데이터 구성 방식
+
+test profile에서 대량의 샘플 데이터를 자동 생성하기보다,
+각 ServiceTest에서 해당 시나리오에 필요한 최소 엔티티만 직접 준비하는 방식으로 정리했다.
+
+공통 테스트 데이터:
+
+- Member
+- Category
+- Asset
+- AssetItem
+
+테스트 클래스에는 `@Transactional`을 적용해 테스트 종료 후 변경 내용이 rollback되도록 했다.
+
+### JPA 테스트 복습
+
+#### `new`와 `persist`
+
+```java
+Member member = new Member(...);
+```
+
+- 일반 자바 객체
+- 아직 JPA 관리 대상이 아님
+
+```java
+em.persist(member);
+```
+
+- 영속성 컨텍스트의 관리 대상(영속 상태)으로 등록
+- flush 시점에 SQL이 DB에 반영될 수 있음
+- 영속 상태 엔티티의 변경은 dirty checking 대상이 됨
+
+#### Entity와 Response DTO의 차이
+
+Entity:
+
+```text
+JPA가 영속성 컨텍스트에서 관리
+→ 트랜잭션 안에서 상태 변경 추적 가능
+```
+
+Response DTO:
+
+```text
+응답 생성 시점의 값을 복사한 스냅샷
+→ 이후 Entity 상태가 바뀌어도 자동 갱신되지 않음
+```
+
+예를 들어 `LoanCreateResponse`가 생성 당시 `RENTED`였다면,
+반납 승인 후 실제 Loan이 `RETURNED`가 되어도 기존 `LoanCreateResponse`의 값은 그대로다.
+
+상태 변경 후 실제 엔티티 상태를 확인해야 하는 테스트에서는:
+
+```java
+Reservation reservation =
+        em.find(Reservation.class, reservationId);
+```
+
+처럼 엔티티를 조회해 검증했다.
+
+### LoanService 핵심 테스트
+
+1. 대여 성공
+   - Loan → `RENTED`
+   - AssetItem → `RENTED`
+
+2. 반납 요청
+   - Loan → `RETURN_REQUESTED`
+
+3. 반납 승인
+   - Loan → `RETURNED`
+   - AssetItem → `AVAILABLE`
+
+4. 타인의 반납 요청 실패
+   - 대여 소유자가 아닌 사용자의 반납 요청 차단
+   - 예외 메시지까지 검증
+
+5. READY 예약자 대여 성공
+   - 기존 사용자 대여
+   - 다른 사용자 예약 → `WAITING`
+   - 기존 사용자 반납 승인 → 예약 `READY`
+   - READY 예약자가 실제 대여 가능
+
+6. READY 예약자가 아닌 사용자 대여 실패
+   - READY 예약자가 존재하는 AssetItem을 다른 사용자가 대여하려 하면 예외
+
+### ReservationService 핵심 테스트
+
+1. 대여 중인 자산 예약 성공
+   - `RENTED` AssetItem 예약
+   - Reservation → `WAITING`
+
+2. 중복 예약 실패
+   - 같은 회원의 동일 AssetItem `WAITING/READY` 중복 예약 차단
+
+3. 본인 대여 품목 예약 실패
+   - 자신의 활성 Loan이 있는 AssetItem 예약 차단
+
+4. 대여 중이 아닌 자산 예약 실패
+   - `AVAILABLE` AssetItem 예약 차단
+
+5. READY 예약 취소 후 다음 예약자 승격
+   - member2 → `WAITING`
+   - member3 → `WAITING`
+   - 반납 승인 후 member2 → `READY`
+   - member2 취소 → `CANCELED`
+   - member3 → `READY`
+
+### 전체 테스트 / 빌드 확인
+
+```powershell
+.\gradlew.bat test
+```
+
+결과:
+
+```text
+BUILD SUCCESSFUL
+```
+
+```powershell
+.\gradlew.bat clean build
+```
+
+결과:
+
+```text
+BUILD SUCCESSFUL
+```
+
+확인한 범위:
+
+- main 코드 컴파일
+- test 코드 컴파일
+- Loan/Reservation 핵심 테스트 실행
+- 테스트 DB 분리
+- 전체 Gradle build 및 jar 패키징 가능
+
+### 현재 테스트 전략
+
+테스트 개수를 늘리는 것보다 포트폴리오의 핵심 비즈니스 규칙을 우선했다.
+
+현재 테스트가 보여주는 내용:
+
+- 상태 전이
+- 데이터 소유권 검증
+- 예약 우선권
+- 중복 예약 차단
+- 반납 승인 후 여러 엔티티의 연쇄 상태 변경
+
+추가 테스트는 필요 시 다음 정도만 고려한다.
+
+- SUSPENDED 회원 로그인 실패
+- USER의 관리자 API 접근 시 403
+- 비밀번호 변경 후 세션 종료
+
+### 아직 남은 작업
+
+- 이미지 파일 서버 측 형식 검증
+- 자산 삭제 시 대표 이미지 실제 파일 정리
+- 일부 UX/에러 처리 보완
+- 운영 profile / 환경변수 정리
+- 실제 배포
+- README / 포트폴리오 문서 최종 정리
+
+## 2026-08-23 - 배포 전 UI/UX 마감 및 DB 무결성 보강
+
+### 1. 배포 전 전체 점검
+
+- Codex를 이용해 배포 직전 기준으로 전체 프로젝트를 점검했다.
+- Backend test/build, Frontend lint/build 상태를 확인했다.
+- 기능 추가보다는 배포 차단 요소와 UI/UX 일관성 중심으로 점검했다.
+
+### 2. UI/UX 정리
+
+- 관리자/매니저 Dashboard에서 사용자 메뉴가 노출되지 않도록 역할별 메뉴를 분리했다.
+- Sidebar의 `회원 관리` 명칭을 `회원/조직 관리`로 변경했다.
+- 자산 카드의 상세보기 버튼이 카드 전체 너비를 차지하던 UI를 수정했다.
+- 전체 관리자 화면의 버튼 크기, 색상, 간격, hover/focus/disabled 스타일을 통일했다.
+- 테이블의 수정/삭제/저장/취소 버튼 정렬과 간격을 정리했다.
+- 회원 수정 시 select와 버튼 렌더링 때문에 컬럼 폭이 흔들리던 문제를 수정했다.
+- 관리자 목록에서 내부 DB PK 컬럼을 제거했다.
+  - 자산번호
+  - 품목번호
+  - 대여번호
+  - 예약번호
+  - 회원번호
+  - 부서번호
+- 사용자 화면에서도 내부 PK 노출을 정리했다.
+- 모바일 화면에서 Sidebar를 그대로 노출하지 않고 햄버거/드로어 형태로 개선하는 방향을 정리했다.
+
+### 3. Frontend Validation 보완
+
+- 로그인/회원가입 화면의 validation을 Backend Bean Validation 기준과 맞췄다.
+- MyPage의 이메일 수정/비밀번호 변경 validation을 보완했다.
+- Backend의 `@NotBlank`, `@Email`, `@Size(min=8, max=16)` 조건과 Frontend 검증 규칙을 일치시켰다.
+- 비밀번호 확인은 Frontend 전용 UX 검증으로 유지했다.
+
+### 4. 이미지/자산 삭제 정리
+
+- 자산 삭제 시 연결된 AssetItem이 있으면 삭제를 차단하도록 했다.
+- 자산 삭제 시 대표 이미지 실제 파일도 함께 정리하도록 처리했다.
+- 이미지 Content-Type 및 확장자 검증을 적용했다.
+- `backend/uploads/`가 Git에 포함되지 않도록 정리했다.
+
+### 5. DB 무결성 보강
+
+- `Member.loginId`에 UNIQUE 제약을 적용했다.
+- `AssetItem.serialNumber`에 UNIQUE 제약을 적용했다.
+- Service 사전 중복 검사와 별도로 DB가 최종적으로 중복 데이터를 차단하도록 했다.
+- 기존 `ddl-auto: update`에서 Entity의 `unique = true`가 기존 테이블에 자동 반영되지 않아 MySQL 스키마에 직접 UNIQUE 제약을 적용했다.
+
+### 6. 현재 상태
+
+- 새로운 핵심 기능 개발은 종료 단계다.
+- 남은 주요 작업은 운영 profile/환경변수 설정, uploads 영구 저장 방식 결정, 최종 Git 정리, 실제 배포, smoke test, README/포트폴리오 정리다.

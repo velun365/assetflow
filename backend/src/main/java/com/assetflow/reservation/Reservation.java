@@ -72,9 +72,9 @@ public class Reservation {
     public void completed() {
         if (this.reservationStatus != ReservationStatus.READY) {
             throw new IllegalStateException(
-                "준비된 예약만 완료 처리할 수 있습니다."
-        );
-    }
+                    "준비된 예약만 완료 처리할 수 있습니다."
+            );
+        }
         this.reservationStatus = ReservationStatus.COMPLETED;
     }
 }

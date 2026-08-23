@@ -28,7 +28,7 @@ const adminSections = [
   },
   {
     id: "members",
-    title: "회원 관리",
+    title: "회원/조직 관리",
     links: [
       { to: "/admin/members", label: "회원 목록" },
       { to: "/admin/departments", label: "부서 관리" },
@@ -131,7 +131,7 @@ const AccordionGroup = ({
   </section>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { pathname } = useLocation();
   const { user } = useContext(AuthContext);
   const activeGroupId = getActiveGroupId(pathname);
@@ -170,9 +170,22 @@ const Sidebar = () => {
     }));
   };
 
+  const handleLinkNavigate = (groupId) => {
+    keepGroupOpen(groupId);
+    onClose();
+  };
+
   return (
-    <aside className="app-sidebar">
-      <Link to="/" className="brand" aria-label="AssetFlow 홈">
+    <aside
+      className={`app-sidebar${isOpen ? " app-sidebar--open" : ""}`}
+      id="app-sidebar"
+    >
+      <Link
+        to="/"
+        className="brand"
+        aria-label="AssetFlow 홈"
+        onClick={onClose}
+      >
         <span>
           <strong>AssetFlow</strong>
           <small>Asset Management</small>
@@ -181,7 +194,12 @@ const Sidebar = () => {
 
       {user && (
         <nav className="sidebar-nav" aria-label="주요 메뉴">
-          <SidebarLink to="/" label="대시보드" isActive={pathname === "/"} />
+          <SidebarLink
+            to="/"
+            label="대시보드"
+            isActive={pathname === "/"}
+            onNavigate={onClose}
+          />
 
           {(user.role === "ADMIN" || user.role === "MANAGER") && (
             <>
@@ -192,7 +210,7 @@ const Sidebar = () => {
                   section={section}
                   isOpen={isGroupOpen(section.id)}
                   onToggle={() => toggleGroup(section.id)}
-                  onLinkNavigate={keepGroupOpen}
+                  onLinkNavigate={handleLinkNavigate}
                   pathname={pathname}
                 />
               ))}
@@ -210,7 +228,7 @@ const Sidebar = () => {
                   section={section}
                   isOpen={isGroupOpen(section.id)}
                   onToggle={() => toggleGroup(section.id)}
-                  onLinkNavigate={keepGroupOpen}
+                  onLinkNavigate={handleLinkNavigate}
                   pathname={pathname}
                 />
               ))}

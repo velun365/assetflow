@@ -32,6 +32,11 @@
   background: #f5f6f8;
 }
 
+.sidebar-overlay,
+button.mobile-menu-button {
+  display: none;
+}
+
 .app-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -330,7 +335,6 @@ button.sidebar-section__toggle--open {
 }
 
 .admin-search > button {
-  min-width: 76px;
   padding: 0 18px;
 }
 
@@ -355,7 +359,6 @@ button.sidebar-section__toggle--open {
 }
 
 .admin-form button {
-  min-width: 76px;
   padding: 0 18px;
 }
 
@@ -396,7 +399,7 @@ textarea:focus {
 }
 
 .btn,
-button:not(.pagination__button):not(.asset-choice-card):not(.sidebar-section__toggle):not(.table-action):not(.header-user__logout) {
+button:not(.pagination__button):not(.asset-choice-card):not(.sidebar-section__toggle):not(.table-action):not(.header-user__logout):not(.sidebar-overlay):not(.mobile-menu-button) {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -415,8 +418,8 @@ button:not(.pagination__button):not(.asset-choice-card):not(.sidebar-section__to
     background-color 0.15s ease;
 }
 
-.btn:hover,
-button:not(.pagination__button):not(.asset-choice-card):not(.sidebar-section__toggle):not(.table-action):not(.header-user__logout):hover {
+.btn:hover:not(:disabled),
+button:not(.pagination__button):not(.asset-choice-card):not(.sidebar-section__toggle):not(.table-action):not(.header-user__logout):not(.sidebar-overlay):not(.mobile-menu-button):hover:not(:disabled) {
   background: #304bdc;
   box-shadow: none;
 }
@@ -429,8 +432,8 @@ button.btn--secondary {
   box-shadow: none;
 }
 
-.btn--secondary:hover,
-button.btn--secondary:hover {
+.btn--secondary:hover:not(:disabled),
+button.btn--secondary:hover:not(:disabled) {
   color: var(--blue-600);
   background: var(--blue-50);
 }
@@ -443,9 +446,34 @@ button.btn--danger {
   box-shadow: none;
 }
 
+.btn--danger:hover:not(:disabled),
+button.btn--danger:hover:not(:disabled) {
+  border-color: #f1bcbc;
+  color: #a92d2d;
+  background: #ffeded;
+}
+
+.btn--sm,
+button.btn--sm {
+  min-height: 30px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 button:disabled {
   opacity: 0.48;
+  cursor: not-allowed;
   box-shadow: none;
+}
+
+button:focus-visible,
+.btn:focus-visible,
+.table-action-link:focus-visible,
+.pagination__button:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
 }
 
 .table-card {
@@ -510,13 +538,53 @@ button:disabled {
 .data-table__action {
   width: 1%;
   text-align: right !important;
+  white-space: nowrap;
 }
 
 .table-actions {
   display: flex;
+  min-height: 30px;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+}
+
+.data-table .table-edit-select {
+  min-height: 30px;
+  height: 30px;
+  padding: 4px 28px 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.member-admin-table {
+  table-layout: fixed;
+}
+
+.member-admin-table__login-id {
+  width: 22%;
+}
+
+.member-admin-table__name,
+.member-admin-table__status {
+  width: 18%;
+}
+
+.member-admin-table__department {
+  width: 25%;
+}
+
+.member-admin-table__action {
+  width: 17%;
+}
+
+.member-admin-table .data-table__action {
+  width: 17%;
+}
+
+.member-admin-table .table-edit-select {
+  width: 100%;
+  max-width: 100%;
 }
 
 .data-table td.table-inline-editor {
@@ -551,19 +619,40 @@ button:disabled {
 button.table-action {
   min-height: 30px;
   padding: 4px 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--slate-200);
   border-radius: 4px;
+  color: var(--slate-700);
   font-size: 11px;
   font-weight: 600;
-  background: transparent;
+  background: var(--white);
   box-shadow: none;
 }
 
-button.table-action--danger {
-  color: var(--danger);
+button.table-action:hover:not(:disabled) {
+  border-color: var(--slate-300);
+  color: var(--blue-600);
+  background: var(--slate-50);
 }
 
-button.table-action--danger:hover {
+button.table-action--primary {
+  border-color: var(--blue-600);
+  color: var(--white);
+  background: var(--blue-600);
+}
+
+button.table-action--primary:hover:not(:disabled) {
+  border-color: #304bdc;
+  color: var(--white);
+  background: #304bdc;
+}
+
+button.table-action--danger {
+  border-color: #ffdada;
+  color: var(--danger);
+  background: #fffafa;
+}
+
+button.table-action--danger:hover:not(:disabled) {
   border-color: #ffdada;
   color: var(--danger);
   background: #fff6f6;
@@ -851,6 +940,23 @@ button.login-form__submit {
   font-weight: 700;
 }
 
+.form-field input.input--error {
+  border-color: #d86b6b;
+  background: #fffafa;
+}
+
+.form-field input.input--error:focus {
+  border-color: #c94f4f;
+  box-shadow: 0 0 0 3px rgba(201, 79, 79, 0.1);
+}
+
+.field-error-message {
+  margin: -2px 0 0;
+  color: #b93434;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -928,6 +1034,22 @@ button.login-form__submit {
   gap: 7px;
   margin-top: auto;
   padding-top: 14px;
+}
+
+.asset-choice-card > .table-action-link {
+  width: auto;
+  align-self: flex-end;
+  margin-top: 10px;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.asset-choice-card > button {
+  width: auto;
+  align-self: flex-end;
+  margin-top: 12px;
 }
 
 .meta-chip {
@@ -1084,10 +1206,81 @@ button.login-form__submit {
 }
 
 @media (max-width: 820px) {
+  .app-shell {
+    overflow-x: hidden;
+  }
+
   .app-sidebar {
-    position: static;
-    width: 100%;
-    padding: 15px 18px;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    visibility: hidden;
+    width: min(280px, 86vw);
+    padding: 20px 16px;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition:
+      transform 0.2s ease,
+      visibility 0.2s ease;
+  }
+
+  .app-sidebar--open {
+    visibility: visible;
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgba(8, 22, 45, 0.18);
+  }
+
+  button.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    display: block;
+    visibility: hidden;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: rgba(8, 22, 45, 0.42);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+  }
+
+  button.sidebar-overlay--visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  button.mobile-menu-button {
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    color: var(--slate-700);
+    background: var(--white);
+  }
+
+  button.mobile-menu-button:hover {
+    border-color: var(--slate-300);
+    background: var(--slate-50);
+  }
+
+  .mobile-menu-button span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
   }
 
   .brand {
@@ -1115,6 +1308,7 @@ button.login-form__submit {
   .app-header {
     position: static;
     min-height: 68px;
+    gap: 12px;
     padding: 12px 20px;
   }
 
@@ -1165,7 +1359,8 @@ button.login-form__submit {
   }
 
   .header-user {
-    width: 100%;
+    width: auto;
+    flex: 1;
     justify-content: flex-end;
   }
 

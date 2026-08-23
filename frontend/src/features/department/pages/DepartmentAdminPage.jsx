@@ -186,7 +186,7 @@ function DepartmentAdminPage() {
       {error && <p className="error-message">{error}</p>}
       {message && <p className="success-message">{message}</p>}
 
-      <div className="toolbar">
+      <div className="toolbar admin-search">
         <div className="toolbar__group toolbar__group--grow">
           <input
             type="text"
@@ -200,19 +200,23 @@ function DepartmentAdminPage() {
             }}
           />
         </div>
-        <button type="button" onClick={createDepartment}>등록</button>
+        <button type="button" onClick={createDepartment}>
+          등록
+        </button>
       </div>
 
       <div className="table-card">
         <div className="table-scroll">
           <table className="data-table">
             <thead>
-              <tr><th>부서번호</th><th>부서명</th><th>관리</th></tr>
+              <tr>
+                <th>부서명</th>
+                <th className="data-table__action">관리</th>
+              </tr>
             </thead>
             <tbody>
               {departments.map((department) => (
                 <tr key={department.departmentId}>
-                  <td>{department.departmentId}</td>
                   <td>
                     {editingId === department.departmentId ? (
                       <input
@@ -221,20 +225,50 @@ function DepartmentAdminPage() {
                         onChange={(event) => setEditingName(event.target.value)}
                       />
                     ) : (
-                      <span className="data-table__primary">{department.name}</span>
+                      <span className="data-table__primary">
+                        {department.name}
+                      </span>
                     )}
                   </td>
-                  <td>
+                  <td className="data-table__action">
                     {editingId === department.departmentId ? (
-                      <>
-                        <button type="button" onClick={() => updateDepartment(department.departmentId)}>저장</button>
-                        <button type="button" onClick={cancelEdit}>취소</button>
-                      </>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="table-action table-action--primary"
+                          onClick={() =>
+                            updateDepartment(department.departmentId)
+                          }
+                        >
+                          저장
+                        </button>
+                        <button
+                          type="button"
+                          className="table-action"
+                          onClick={cancelEdit}
+                        >
+                          취소
+                        </button>
+                      </div>
                     ) : (
-                      <>
-                        <button type="button" onClick={() => startEdit(department)}>수정</button>
-                        <button type="button" onClick={() => deleteDepartment(department.departmentId)}>삭제</button>
-                      </>
+                      <div className="table-actions">
+                        <button
+                          type="button"
+                          className="table-action"
+                          onClick={() => startEdit(department)}
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          className="table-action table-action--danger"
+                          onClick={() =>
+                            deleteDepartment(department.departmentId)
+                          }
+                        >
+                          삭제
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

@@ -43,10 +43,6 @@ function LoanCreatePage() {
     };
     searchAsset();
   }, []);
-  if (error) {
-    return <p className="error-message">{error}</p>;
-  }
-
   const filteredAssets = assets.filter((asset) => {
     const matchKeyword = asset.name.includes(searchKeyword);
     const matchesCategory =
@@ -56,6 +52,7 @@ function LoanCreatePage() {
 
   const chooseAsset = async (asset) => {
     setSelectAsset(asset);
+    setError("");
     try {
       const response = await fetch(`/api/asset-items/${asset.assetId}`);
       if (!response.ok) {
@@ -74,6 +71,8 @@ function LoanCreatePage() {
     if (!confirmed) {
       return;
     }
+
+    setError("");
 
     try {
       const csrfToken = await getCsrfToken();
@@ -120,6 +119,7 @@ function LoanCreatePage() {
           <p>대여할 자산을 검색하고 사용 가능한 품목을 선택합니다.</p>
         </div>
       </div>
+      {error && <p className="error-message">{error}</p>}
       {selectAsset === null && (
         <section className="toolbar">
           <div className="toolbar__group toolbar__group--grow">

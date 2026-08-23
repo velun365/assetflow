@@ -115,7 +115,7 @@ function CategoryAdminPage() {
           {user?.role === "ADMIN" && (
             <button
               type="button"
-              className="btn--danger"
+              className="btn btn--danger btn--sm"
               onClick={() => {
                 handleDelete(category.id);
               }}

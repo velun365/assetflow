@@ -63,7 +63,7 @@ const HomePage = () => {
         </section>
       )}
 
-      {user && (
+      {user?.role === "USER" && (
         <section className="home-section">
           <div className="home-section__title">
             <h2>사용자 메뉴</h2>

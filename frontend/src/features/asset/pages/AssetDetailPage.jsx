@@ -218,7 +218,6 @@ const AssetDetailPage = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>품목번호</th>
                   <th>시리얼 넘버</th>
                   <th>위치</th>
                   <th>상태</th>
@@ -228,7 +227,6 @@ const AssetDetailPage = () => {
               <tbody>
                 {asset.assetItems.map((assetItem) => (
                   <tr key={assetItem.assetItemId}>
-                    <td>{assetItem.assetItemId}</td>
                     <td>{assetItem.serialNumber}</td>
                     <td>{assetItem.location}</td>
                     <td>

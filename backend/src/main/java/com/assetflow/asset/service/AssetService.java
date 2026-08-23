@@ -82,6 +82,11 @@ public class AssetService {
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new IllegalArgumentException("존재 하지않는 자산입니다."));
 
+        if (!asset.getAssetItems().isEmpty()) {
+            throw new IllegalStateException("자산 품목이 존재하는 자산은 삭제 할 수 없습니다.");
+        }
+
+        imagesStorageService.delete(asset.getImagePath());
         assetRepository.delete(asset);
     }
 

@@ -84,19 +84,17 @@ const ReservationsPage = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>예약번호</th>
                   <th>자산명</th>
                   <th>시리얼번호</th>
                   <th>예약일</th>
                   <th>상태</th>
-                  <th>처리</th>
+                  <th className="data-table__action">처리</th>
                 </tr>
               </thead>
 
               <tbody>
                 {reservations.map((reservation) => (
                   <tr key={reservation.reservationId}>
-                    <td>{reservation.reservationId}</td>
                     <td className="data-table__primary">
                       {reservation.assetName}
                     </td>
@@ -105,18 +103,21 @@ const ReservationsPage = () => {
                     <td>
                       <StatusBadge status={reservation.reservationStatus} />
                     </td>
-                    <td>
+                    <td className="data-table__action">
                       {["WAITING", "READY"].includes(
                         reservation.reservationStatus,
                       ) ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            cancelReservation(reservation.reservationId)
-                          }
-                        >
-                          예약 취소
-                        </button>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="table-action"
+                            onClick={() =>
+                              cancelReservation(reservation.reservationId)
+                            }
+                          >
+                            예약 취소
+                          </button>
+                        </div>
                       ) : (
                         "-"
                       )}

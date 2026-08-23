@@ -21,6 +21,7 @@ public class Member {
     @GeneratedValue
     @Column(name = "member_id")
     private Long id;
+    @Column(nullable = false, unique = true)
     private String loginId;
     private String email;
     private String password;

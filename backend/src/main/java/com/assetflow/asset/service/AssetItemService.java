@@ -132,6 +132,15 @@ public class AssetItemService {
         AssetItem assetItem = assetItemRepository.findById(assetItemId)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 자산 품목입니다."));
 
+        boolean hasReadyReservation = reservationRepository.existsByAssetItemIdAndReservationStatus(
+                assetItemId,
+                ReservationStatus.READY
+        );
+
+        if (hasReadyReservation) {
+            throw new IllegalStateException("대여 준비 중인 예약이 있어 수정할 수 없습니다.");
+        }
+
         Asset asset = assetRepository.findById(request.getAssetId())
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 자산입니다."));
 

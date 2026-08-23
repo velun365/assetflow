@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { AuthContext } from "../../features/auth/context/AuthContext";
 import { getCsrfToken } from "../api/csrfFetch";
 
-const Header = () => {
+const Header = ({ isMenuOpen, onMenuToggle }) => {
   const navigate = useNavigate();
   const { user, setUser, loading } = useContext(AuthContext);
 
@@ -40,6 +40,18 @@ const Header = () => {
           </button>
         </div>
       )}
+      <button
+        type="button"
+        className="mobile-menu-button"
+        aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+        aria-expanded={isMenuOpen}
+        aria-controls="app-sidebar"
+        onClick={onMenuToggle}
+      >
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+        <span aria-hidden="true" />
+      </button>
     </header>
   );
 };

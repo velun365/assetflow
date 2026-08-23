@@ -140,7 +140,6 @@ const ReservationAdminPage = () => {
         <div className="table-scroll"><table className="data-table">
           <thead>
             <tr>
-              <th>예약번호</th>
               <th>회원명</th>
               <th>자산명</th>
               <th>예약일</th>
@@ -151,7 +150,6 @@ const ReservationAdminPage = () => {
           <tbody>
             {reservations.map((reservation) => (
               <tr key={reservation.reservationId}>
-                <td>{reservation.reservationId}</td>
                 <td className="data-table__primary">{reservation.memberName}</td>
                 <td>{reservation.assetName}</td>
                 <td>{formatDateTime(reservation.reservedAt)}</td>
