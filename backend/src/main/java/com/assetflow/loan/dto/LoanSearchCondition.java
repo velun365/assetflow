@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class LoanSearchCondition {
     private LoanStatus loanStatus;
     private String memberName;
-    private Long assetItemId;
+    private String assetName;
 
     private LocalDate loanDateFrom;
     private LocalDate loanDateTo;

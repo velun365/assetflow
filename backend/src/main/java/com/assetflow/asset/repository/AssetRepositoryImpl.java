@@ -11,10 +11,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import java.util.List;
 import com.assetflow.asset.AssetItemStatus;
+import com.assetflow.reservation.ReservationStatus;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import static com.assetflow.asset.QAsset.*;
 import static com.assetflow.asset.QCategory.category;
 import static com.assetflow.asset.QAssetItem.assetItem;
+import static com.assetflow.reservation.QReservation.reservation;
 import static org.springframework.util.StringUtils.*;
 
 public class AssetRepositoryImpl implements AssetRepositoryCustom {
@@ -33,9 +35,12 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                                 asset.id,
                                 asset.name,
                                 category.name,
-                                assetItem.id.count(),
+                                assetItem.id.countDistinct(),
                                 new CaseBuilder()
-                                        .when(assetItem.assetItemStatus.eq(AssetItemStatus.AVAILABLE))
+                                        .when(
+                                                assetItem.assetItemStatus.eq(AssetItemStatus.AVAILABLE)
+                                                        .and(reservation.id.isNull())
+                                        )
                                         .then(1L)
                                         .otherwise(0L)
                                         .sum()
@@ -43,11 +48,14 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                 .from(asset)
                 .leftJoin(asset.category, category)
                 .leftJoin(asset.assetItems, assetItem)
+                .leftJoin(assetItem.reservations, reservation)
+                .on(reservation.reservationStatus.eq(ReservationStatus.READY))
                 .where(
                         nameContains(condition.getName()),
                         categoryNameContains(condition.getCategoryName())
                 )
                 .groupBy(asset.id ,asset.name, category.name)
+                .orderBy(asset.id.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

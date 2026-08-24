@@ -7,6 +7,7 @@ import com.assetflow.asset.dto.*;
 import com.assetflow.asset.image.ImagesStorageService;
 import com.assetflow.asset.repository.AssetRepository;
 import com.assetflow.asset.repository.CategoryRepository;
+import com.assetflow.reservation.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,11 +60,21 @@ public class AssetService {
                                 assetItem.getId(),
                                 assetItem.getSerialNumber(),
                                 assetItem.getLocation(),
-                                assetItem.getAssetItemStatus()
+                                assetItem.getAssetItemStatus(),
+                                assetItem.getReservations().stream()
+                                        .anyMatch(reservation ->
+                                                reservation.getReservationStatus() == ReservationStatus.READY
+                                        )
                         )).toList();
 
         int totalCount = assetItems.size();
-        long availableCount = assetItems.stream().filter(assetItem -> assetItem.getAssetItemStatus() == AssetItemStatus.AVAILABLE).count();
+        long availableCount = asset.getAssetItems().stream()
+                .filter(assetItem -> assetItem.getAssetItemStatus() == AssetItemStatus.AVAILABLE)
+                .filter(assetItem -> assetItem.getReservations().stream()
+                        .noneMatch(reservation ->
+                                reservation.getReservationStatus() == ReservationStatus.READY
+                        ))
+                .count();
 
         return new AssetDetailResponse(
                 asset.getId(),

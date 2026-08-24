@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../auth/context/AuthContext";
 import { getCsrfToken } from "../../../shared/api/csrfFetch";
+import StatusBadge from "../../../shared/components/StatusBadge";
 
 const getErrorMessage = async (response, fallbackMessage) => {
   try {
@@ -205,16 +206,12 @@ const MyPage = () => {
             <strong>{memberInfo?.departmentName || "미지정"}</strong>
           </div>
 
-          {(role === "ADMIN" || role === "MANAGER") && (
-            <div>
-              <span>권한</span>
-              <strong
-                className={`role-badge role-badge--${role.toLowerCase()}`}
-              >
-                {role}
-              </strong>
-            </div>
-          )}
+          <div>
+            <span>권한</span>
+            <strong>
+              <StatusBadge status={role} />
+            </strong>
+          </div>
         </div>
       </section>
 

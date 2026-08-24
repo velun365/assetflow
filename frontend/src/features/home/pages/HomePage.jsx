@@ -67,9 +67,8 @@ const HomePage = () => {
         <section className="home-section">
           <div className="home-section__title">
             <h2>사용자 메뉴</h2>
-            <span>신청 및 내역 확인</span>
           </div>
-          <div className="home-grid">
+          <div className="home-grid home-grid--user">
             {userMenus.map(([title, description, to]) => (
               <Link key={to} to={to} className="home-card">
                 <h3>{title}</h3>

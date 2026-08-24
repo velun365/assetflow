@@ -15,20 +15,28 @@ const ReservationAdminPage = () => {
   const [searchType, setSearchType] = useState("memberName");
   const [keyword, setKeyword] = useState("");
   const [reservationStatus, setReservationStatus] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchType: "memberName",
+    keyword: "",
+    reservationStatus: "",
+  });
   const [error, setError] = useState("");
 
-  const loadReservations = async (pageNumber = 0) => {
+  const loadReservations = async (
+    pageNumber = 0,
+    filters = appliedFilters,
+  ) => {
     try {
       setError("");
 
       const params = new URLSearchParams();
 
-      if (keyword.trim() !== "") {
-        params.append(searchType, keyword.trim());
+      if (filters.keyword.trim() !== "") {
+        params.append(filters.searchType, filters.keyword.trim());
       }
 
-      if (reservationStatus !== "") {
-        params.append("reservationStatus", reservationStatus);
+      if (filters.reservationStatus !== "") {
+        params.append("reservationStatus", filters.reservationStatus);
       }
 
       params.append("page", pageNumber);
@@ -80,17 +88,19 @@ const ReservationAdminPage = () => {
   }, []);
 
   const handleSearch = () => {
-    loadReservations(0);
+    const filters = { searchType, keyword, reservationStatus };
+    setAppliedFilters(filters);
+    loadReservations(0, filters);
   };
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
-      loadReservations(0);
+      handleSearch();
     }
   };
 
   return (
-    <div className="page">
+    <div className="page admin-list-page">
       <div className="page-heading"><div><h1>예약 현황</h1><p>자산별 예약 순서와 처리 상태를 조회합니다.</p></div></div>
 
       <div className="toolbar admin-search">
@@ -159,6 +169,7 @@ const ReservationAdminPage = () => {
           </tbody>
         </table></div>
       )}
+      </div>
 
       {pageInfo.totalPages > 0 && (
         <div className="pagination">
@@ -193,7 +204,6 @@ const ReservationAdminPage = () => {
           </button>
         </div>
       )}
-      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import "./AssetDetailPage.css";
 import StatusBadge from "../../../shared/components/StatusBadge";
 import { AuthContext } from "../../auth/context/AuthContext";
@@ -26,6 +26,7 @@ const getErrorMessage = async (response, fallbackMessage) => {
 
 const AssetDetailPage = () => {
   const { assetId } = useParams();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const fileInputRef = useRef(null);
   const [asset, setAsset] = useState(null);
@@ -116,6 +117,35 @@ const AssetDetailPage = () => {
     }
   };
 
+  const deleteAsset = async () => {
+    if (!window.confirm("이 자산을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      setError("");
+      setMessage("");
+
+      const csrfToken = await getCsrfToken();
+      const response = await fetch(`/api/assets/${assetId}`, {
+        method: "DELETE",
+        headers: {
+          "X-XSRF-TOKEN": csrfToken,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await getErrorMessage(response, "자산 삭제에 실패했습니다."),
+        );
+      }
+
+      navigate("/admin/assets");
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   if (!asset) {
     return error ? (
       <p className="error-message">{error}</p>
@@ -130,12 +160,23 @@ const AssetDetailPage = () => {
           <h1>자산 상세</h1>
           <p>자산 기본 정보와 소속 품목을 확인합니다.</p>
         </div>
-        <Link
-          className="btn btn--secondary"
-          to={user?.role === "USER" ? "/loans/new" : "/admin/assets"}
-        >
-          목록으로
-        </Link>
+        <div className="detail-heading-actions">
+          <Link
+            className="btn btn--secondary"
+            to={user?.role === "USER" ? "/loans/new" : "/admin/assets"}
+          >
+            목록으로
+          </Link>
+          {user?.role === "ADMIN" && (
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={deleteAsset}
+            >
+              자산 삭제
+            </button>
+          )}
+        </div>
       </div>
       {error && <p className="error-message">{error}</p>}
       {message && <p className="success-message">{message}</p>}
@@ -230,7 +271,14 @@ const AssetDetailPage = () => {
                     <td>{assetItem.serialNumber}</td>
                     <td>{assetItem.location}</td>
                     <td>
-                      <StatusBadge status={assetItem.assetItemStatus} />
+                      {assetItem.assetItemStatus === "AVAILABLE" &&
+                      assetItem.hasReadyReservation ? (
+                        <span className="status-badge status-badge--primary">
+                          예약자 대여 대기
+                        </span>
+                      ) : (
+                        <StatusBadge status={assetItem.assetItemStatus} />
+                      )}
                     </td>
                   </tr>
                 ))}

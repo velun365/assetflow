@@ -16,32 +16,39 @@ const LoanAdminPage = () => {
   const [loanStatus, setLoanStatus] = useState("");
   const [loanDateFrom, setLoanDateFrom] = useState("");
   const [loanDateTo, setLoanDateTo] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchType: "memberName",
+    keyword: "",
+    loanStatus: "",
+    loanDateFrom: "",
+    loanDateTo: "",
+  });
 
   const [error, setError] = useState("");
 
-  const loadLoans = async (pageNumber = 0) => {
+  const loadLoans = async (pageNumber = 0, filters = appliedFilters) => {
     try {
       setError("");
       const params = new URLSearchParams();
 
-      // 회원명 또는 자산품목 번호
-      if (keyword.trim() !== "") {
-        params.append(searchType, keyword.trim());
+      // 회원명 또는 자산명
+      if (filters.keyword.trim() !== "") {
+        params.append(filters.searchType, filters.keyword.trim());
       }
 
       // 대여 상태
-      if (loanStatus !== "") {
-        params.append("loanStatus", loanStatus);
+      if (filters.loanStatus !== "") {
+        params.append("loanStatus", filters.loanStatus);
       }
 
       // 대여 시작일
-      if (loanDateFrom !== "") {
-        params.append("loanDateFrom", loanDateFrom);
+      if (filters.loanDateFrom !== "") {
+        params.append("loanDateFrom", filters.loanDateFrom);
       }
 
       // 대여 종료일
-      if (loanDateTo !== "") {
-        params.append("loanDateTo", loanDateTo);
+      if (filters.loanDateTo !== "") {
+        params.append("loanDateTo", filters.loanDateTo);
       }
 
       params.append("page", pageNumber);
@@ -125,53 +132,44 @@ const LoanAdminPage = () => {
   };
 
   const handleSearch = () => {
-    loadLoans(0);
+    const filters = {
+      searchType,
+      keyword,
+      loanStatus,
+      loanDateFrom,
+      loanDateTo,
+    };
+    setAppliedFilters(filters);
+    loadLoans(0, filters);
   };
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
-      loadLoans(0);
+      handleSearch();
     }
   };
 
   const handleReset = () => {
+    const filters = {
+      searchType: "memberName",
+      keyword: "",
+      loanStatus: "",
+      loanDateFrom: "",
+      loanDateTo: "",
+    };
+
     setSearchType("memberName");
     setKeyword("");
     setLoanStatus("");
     setLoanDateFrom("");
     setLoanDateTo("");
 
-    // 상태 변경은 즉시 반영되지 않으므로 전체 조회를 직접 요청
-    loadAllLoans();
-  };
-
-  const loadAllLoans = async () => {
-    try {
-      setError("");
-
-      const response = await fetch("/api/loans/search?page=0&size=10");
-
-      if (!response.ok) {
-        throw new Error("대여 조회에 실패했습니다.");
-      }
-
-      const data = await response.json();
-
-      setLoans(data.content);
-
-      setPageInfo({
-        number: data.number,
-        totalPages: data.totalPages,
-        first: data.first,
-        last: data.last,
-      });
-    } catch (error) {
-      setError(error.message);
-    }
+    setAppliedFilters(filters);
+    loadLoans(0, filters);
   };
 
   return (
-    <div className="page">
+    <div className="page admin-list-page">
       <div className="page-heading"><div><h1>전체 대여 관리</h1><p>대여 상태를 검색하고 접수된 반납 요청을 승인합니다.</p></div></div>
 
       <div className="toolbar admin-search">
@@ -182,19 +180,19 @@ const LoanAdminPage = () => {
           onChange={(event) => setSearchType(event.target.value)}
         >
           <option value="memberName">회원명</option>
-          <option value="assetItemId">자산품목 번호</option>
+          <option value="assetName">자산명</option>
         </select>
 
         <input
           aria-label="대여 검색어"
-          type={searchType === "assetItemId" ? "number" : "text"}
+          type="text"
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={
             searchType === "memberName"
               ? "회원명을 입력하세요"
-              : "자산품목 번호를 입력하세요"
+              : "자산명을 입력하세요"
           }
         />
         </div>
@@ -286,6 +284,7 @@ const LoanAdminPage = () => {
           </tbody>
         </table></div>
       )}
+      </div>
 
       {pageInfo.totalPages > 0 && (
         <div className="pagination">
@@ -320,7 +319,6 @@ const LoanAdminPage = () => {
           </button>
         </div>
       )}
-      </div>
     </div>
   );
 };

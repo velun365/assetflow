@@ -5,9 +5,19 @@ import { getCsrfToken } from "../../../shared/api/csrfFetch";
 const ReservationCreatePage = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [categoryName, setCategoryName] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: "",
+    categoryName: "",
+  });
 
   const [categories, setCategories] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [pageInfo, setPageInfo] = useState({
+    number: 0,
+    totalPages: 0,
+    first: true,
+    last: true,
+  });
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [assetItems, setAssetItems] = useState([]);
 
@@ -34,9 +44,9 @@ const ReservationCreatePage = () => {
   }, []);
 
   useEffect(() => {
-    const loadAssets = async () => {
+    const loadInitialAssets = async () => {
       try {
-        const response = await fetch("/api/assets/search");
+        const response = await fetch("/api/assets/search?page=0&size=9");
 
         if (!response.ok) {
           throw new Error("자산 목록 조회에 실패했습니다.");
@@ -44,22 +54,61 @@ const ReservationCreatePage = () => {
 
         const data = await response.json();
         setAssets(data.content);
+        setPageInfo({
+          number: data.number,
+          totalPages: data.totalPages,
+          first: data.first,
+          last: data.last,
+        });
       } catch (error) {
         setError(error.message);
       }
     };
 
-    loadAssets();
+    loadInitialAssets();
   }, []);
 
-  const filteredAssets = assets.filter((asset) => {
-    const matchesKeyword = asset.name.includes(searchKeyword);
+  const loadAssets = async (pageNumber, filters = appliedFilters) => {
+    try {
+      setError("");
+      const params = new URLSearchParams();
+      const name = filters.name.trim();
 
-    const matchesCategory =
-      categoryName === "" || asset.categoryName === categoryName;
+      if (name) {
+        params.append("name", name);
+      }
+      if (filters.categoryName) {
+        params.append("categoryName", filters.categoryName);
+      }
+      params.append("page", pageNumber);
+      params.append("size", 9);
 
-    return matchesKeyword && matchesCategory;
-  });
+      const response = await fetch(`/api/assets/search?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error("자산 목록 조회에 실패했습니다.");
+      }
+
+      const data = await response.json();
+      setAssets(data.content);
+      setPageInfo({
+        number: data.number,
+        totalPages: data.totalPages,
+        first: data.first,
+        last: data.last,
+      });
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleSearch = () => {
+    const filters = {
+      name: searchKeyword,
+      categoryName,
+    };
+    setAppliedFilters(filters);
+    loadAssets(0, filters);
+  };
 
   const chooseAsset = async (asset) => {
     setSelectedAsset(asset);
@@ -136,8 +185,8 @@ const ReservationCreatePage = () => {
 
       {selectedAsset === null ? (
         <>
-          <section className="toolbar">
-            <div className="toolbar__group toolbar__group--grow">
+          <section className="toolbar admin-search asset-search-toolbar">
+            <div className="toolbar__group toolbar__group--grow admin-search__query">
               <select
                 aria-label="카테고리"
                 value={categoryName}
@@ -157,16 +206,20 @@ const ReservationCreatePage = () => {
                 type="text"
                 value={searchKeyword}
                 onChange={(event) => setSearchKeyword(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && handleSearch()}
                 placeholder="자산명을 입력하세요"
               />
             </div>
+            <button type="button" onClick={handleSearch}>
+              검색
+            </button>
           </section>
 
           <section className="asset-grid">
-            {filteredAssets.length === 0 ? (
+            {assets.length === 0 ? (
               <p className="empty-state card">조건에 맞는 자산이 없습니다.</p>
             ) : (
-              filteredAssets.map((asset) => (
+              assets.map((asset) => (
                 <div
                   className="asset-choice-card"
                   key={asset.assetId}
@@ -176,14 +229,42 @@ const ReservationCreatePage = () => {
                   <p>{asset.categoryName}</p>
                   <div className="asset-choice-card__meta">
                     <span className="meta-chip">보유 {asset.totalCount}</span>
-                    <span className="meta-chip">
-                      예약 대상 {asset.totalCount - asset.availableCount}
-                    </span>
                   </div>
                 </div>
               ))
             )}
           </section>
+          {pageInfo.totalPages > 0 && (
+            <div className="pagination">
+              <button
+                type="button"
+                className="pagination__button"
+                disabled={pageInfo.first}
+                onClick={() => loadAssets(pageInfo.number - 1)}
+              >
+                이전
+              </button>
+              {Array.from({ length: pageInfo.totalPages }, (_, index) => (
+                <button
+                  type="button"
+                  className="pagination__button"
+                  key={index}
+                  disabled={pageInfo.number === index}
+                  onClick={() => loadAssets(index)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="pagination__button"
+                disabled={pageInfo.last}
+                onClick={() => loadAssets(pageInfo.number + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <section className="page">
@@ -221,6 +302,8 @@ const ReservationCreatePage = () => {
                           ? "이미 예약 중"
                           : assetItem.assetItemStatus === "RENTED"
                             ? "예약 가능"
+                            : assetItem.hasReadyReservation
+                              ? "예약자 대여 대기"
                             : "현재 대여 가능"}
                     </p>
 
@@ -235,6 +318,8 @@ const ReservationCreatePage = () => {
                           ? "이미 예약 중"
                           : isReservable
                             ? "예약하기"
+                            : assetItem.hasReadyReservation
+                              ? "예약자 대여 대기"
                             : assetItem.assetItemStatus === "AVAILABLE"
                               ? "현재 대여 가능"
                               : "예약 불가"}

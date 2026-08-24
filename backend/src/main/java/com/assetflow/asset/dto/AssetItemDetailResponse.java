@@ -12,4 +12,5 @@ public class AssetItemDetailResponse {
     private String serialNumber;
     private String location;
     private AssetItemStatus assetItemStatus;
+    private boolean hasReadyReservation;
 }

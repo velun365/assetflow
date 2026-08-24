@@ -3,6 +3,7 @@ package com.assetflow.asset.repository;
 import com.assetflow.asset.AssetItemStatus;
 import com.assetflow.asset.dto.AssetItemAdminResponse;
 import com.assetflow.asset.dto.AssetItemSearchCondition;
+import com.assetflow.reservation.ReservationStatus;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static com.assetflow.asset.QAsset.asset;
 import static com.assetflow.asset.QAssetItem.assetItem;
+import static com.assetflow.reservation.QReservation.reservation;
 import static org.springframework.util.StringUtils.hasText;
 
 public class AssetItemRepositoryImpl implements AssetItemRepositoryCustom {
@@ -37,14 +39,25 @@ public class AssetItemRepositoryImpl implements AssetItemRepositoryCustom {
                         assetItem.location,
                         assetItem.assetItemStatus,
                         asset.id,
-                        asset.name
+                        asset.name,
+                        reservation.id.count().gt(0L)
                 ))
                 .from(assetItem)
                 .join(assetItem.asset, asset)
+                .leftJoin(assetItem.reservations, reservation)
+                .on(reservation.reservationStatus.eq(ReservationStatus.READY))
                 .where(
                         serialNumberContains(condition.getSerialNumber()),
                         assetNameContains(condition.getAssetName()),
                         assetItemStatusEq(condition.getAssetItemStatus())
+                )
+                .groupBy(
+                        assetItem.id,
+                        assetItem.serialNumber,
+                        assetItem.location,
+                        assetItem.assetItemStatus,
+                        asset.id,
+                        asset.name
                 )
                 .orderBy(assetItem.id.desc())
                 .offset(pageable.getOffset())

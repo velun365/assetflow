@@ -14,4 +14,5 @@ public class AssetItemAdminResponse {
     private AssetItemStatus assetItemStatus;
     private Long assetId;
     private String assetName;
+    private boolean hasReadyReservation;
 }

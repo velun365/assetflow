@@ -17,6 +17,10 @@ function MemberAdminPage() {
 
   const [searchType, setSearchType] = useState("loginId");
   const [keyword, setKeyword] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchType: "loginId",
+    keyword: "",
+  });
 
   const [editingId, setEditingId] = useState(null);
   const [editDepartmentId, setEditDepartmentId] = useState("");
@@ -25,14 +29,15 @@ function MemberAdminPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const loadMembers = async (pageNumber = 0) => {
+  const loadMembers = async (pageNumber = 0, filters = appliedFilters) => {
     const params = new URLSearchParams();
 
-    if (keyword.trim() !== "") {
-      params.append(searchType, keyword.trim());
+    if (filters.keyword.trim() !== "") {
+      params.append(filters.searchType, filters.keyword.trim());
     }
 
     params.append("page", pageNumber);
+    params.append("size", 10);
 
     const response = await fetch(`/api/members/search?${params.toString()}`);
 
@@ -55,7 +60,7 @@ function MemberAdminPage() {
     const loadInitialData = async () => {
       try {
         const [membersResponse, departmentsResponse] = await Promise.all([
-          fetch("/api/members/search"),
+          fetch("/api/members/search?page=0&size=10"),
           fetch("/api/departments"),
         ]);
 
@@ -87,7 +92,21 @@ function MemberAdminPage() {
     loadInitialData();
   }, []);
 
-  const handleSearch = async (pageNumber = 0) => {
+  const handleSearch = async () => {
+    const filters = { searchType, keyword };
+    setAppliedFilters(filters);
+
+    try {
+      setError("");
+      setMessage("");
+
+      await loadMembers(0, filters);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handlePageChange = async (pageNumber) => {
     try {
       setError("");
       setMessage("");
@@ -165,12 +184,12 @@ function MemberAdminPage() {
 
   const onKeyDownKeyword = (e) => {
     if (e.key === "Enter") {
-      handleSearch(0);
+      handleSearch();
     }
   };
 
   return (
-    <div className="page">
+    <div className="page admin-list-page">
       <div className="page-heading">
         <div>
           <h1>회원 목록</h1>
@@ -203,7 +222,7 @@ function MemberAdminPage() {
           />
         </div>
 
-        <button type="button" onClick={() => handleSearch(0)}>
+        <button type="button" onClick={handleSearch}>
           검색
         </button>
       </div>
@@ -318,12 +337,13 @@ function MemberAdminPage() {
         {members.length === 0 && (
           <p className="empty-state">등록된 회원이 없습니다.</p>
         )}
+      </div>
 
-        <div className="pagination">
+      <div className="pagination">
           <button
             type="button"
             className="pagination__button"
-            onClick={() => handleSearch(pageInfo.number - 1)}
+            onClick={() => handlePageChange(pageInfo.number - 1)}
             disabled={pageInfo.first}
           >
             이전
@@ -334,7 +354,7 @@ function MemberAdminPage() {
               type="button"
               className="pagination__button"
               key={index}
-              onClick={() => handleSearch(index)}
+              onClick={() => handlePageChange(index)}
               disabled={pageInfo.number === index}
             >
               {index + 1}
@@ -344,12 +364,11 @@ function MemberAdminPage() {
           <button
             type="button"
             className="pagination__button"
-            onClick={() => handleSearch(pageInfo.number + 1)}
+            onClick={() => handlePageChange(pageInfo.number + 1)}
             disabled={pageInfo.last}
           >
             다음
           </button>
-        </div>
       </div>
     </div>
   );

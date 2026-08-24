@@ -6,8 +6,18 @@ import { getCsrfToken } from "../../../shared/api/csrfFetch";
 function LoanCreatePage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [categoryName, setCategoryName] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: "",
+    categoryName: "",
+  });
   const [categories, setCategories] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [pageInfo, setPageInfo] = useState({
+    number: 0,
+    totalPages: 0,
+    first: true,
+    last: true,
+  });
   const [selectAsset, setSelectAsset] = useState(null);
   const [assetItems, setAssetItems] = useState([]);
   const [error, setError] = useState("");
@@ -29,26 +39,68 @@ function LoanCreatePage() {
   }, []);
 
   useEffect(() => {
-    const searchAsset = async () => {
+    const loadInitialAssets = async () => {
       try {
-        const response = await fetch("/api/assets/search");
+        const response = await fetch("/api/assets/search?page=0&size=9");
         if (!response.ok) {
           throw new Error("자산목록 조회에 실패하였습니다.");
         }
         const data = await response.json();
         setAssets(data.content);
+        setPageInfo({
+          number: data.number,
+          totalPages: data.totalPages,
+          first: data.first,
+          last: data.last,
+        });
       } catch (error) {
         setError(error.message);
       }
     };
-    searchAsset();
+    loadInitialAssets();
   }, []);
-  const filteredAssets = assets.filter((asset) => {
-    const matchKeyword = asset.name.includes(searchKeyword);
-    const matchesCategory =
-      categoryName === "" || asset.categoryName === categoryName;
-    return matchKeyword && matchesCategory;
-  });
+
+  const loadAssets = async (pageNumber, filters = appliedFilters) => {
+    try {
+      setError("");
+      const params = new URLSearchParams();
+      const name = filters.name.trim();
+
+      if (name) {
+        params.append("name", name);
+      }
+      if (filters.categoryName) {
+        params.append("categoryName", filters.categoryName);
+      }
+      params.append("page", pageNumber);
+      params.append("size", 9);
+
+      const response = await fetch(`/api/assets/search?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error("자산목록 조회에 실패하였습니다.");
+      }
+
+      const data = await response.json();
+      setAssets(data.content);
+      setPageInfo({
+        number: data.number,
+        totalPages: data.totalPages,
+        first: data.first,
+        last: data.last,
+      });
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleSearch = () => {
+    const filters = {
+      name: searchKeyword,
+      categoryName,
+    };
+    setAppliedFilters(filters);
+    loadAssets(0, filters);
+  };
 
   const chooseAsset = async (asset) => {
     setSelectAsset(asset);
@@ -121,8 +173,8 @@ function LoanCreatePage() {
       </div>
       {error && <p className="error-message">{error}</p>}
       {selectAsset === null && (
-        <section className="toolbar">
-          <div className="toolbar__group toolbar__group--grow">
+        <section className="toolbar admin-search asset-search-toolbar">
+          <div className="toolbar__group toolbar__group--grow admin-search__query">
             <select
               aria-label="카테고리"
               value={categoryName}
@@ -141,14 +193,18 @@ function LoanCreatePage() {
               type="text"
               value={searchKeyword}
               onChange={onChangeKeyword}
+              onKeyDown={(event) => event.key === "Enter" && handleSearch()}
             />
           </div>
+          <button type="button" onClick={handleSearch}>
+            검색
+          </button>
         </section>
       )}
       <section>
         {selectAsset === null ? (
           <div className="asset-grid">
-            {filteredAssets.map((asset) => (
+            {assets.map((asset) => (
               <div
                 className="asset-choice-card"
                 key={asset.assetId}
@@ -173,7 +229,7 @@ function LoanCreatePage() {
                 </Link>
               </div>
             ))}
-            {filteredAssets.length === 0 && (
+            {assets.length === 0 && (
               <p className="empty-state card">조건에 맞는 자산이 없습니다.</p>
             )}
           </div>
@@ -235,6 +291,37 @@ function LoanCreatePage() {
           </div>
         )}
       </section>
+      {selectAsset === null && pageInfo.totalPages > 0 && (
+        <div className="pagination">
+          <button
+            type="button"
+            className="pagination__button"
+            disabled={pageInfo.first}
+            onClick={() => loadAssets(pageInfo.number - 1)}
+          >
+            이전
+          </button>
+          {Array.from({ length: pageInfo.totalPages }, (_, index) => (
+            <button
+              type="button"
+              className="pagination__button"
+              key={index}
+              disabled={pageInfo.number === index}
+              onClick={() => loadAssets(index)}
+            >
+              {index + 1}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="pagination__button"
+            disabled={pageInfo.last}
+            onClick={() => loadAssets(pageInfo.number + 1)}
+          >
+            다음
+          </button>
+        </div>
+      )}
     </div>
   );
 }

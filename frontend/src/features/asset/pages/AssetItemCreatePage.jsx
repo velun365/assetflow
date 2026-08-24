@@ -14,13 +14,29 @@ const AssetItemCreatePage = () => {
   useEffect(() => {
     const fetchAssets = async () => {
       try {
-        const response = await fetch("/api/assets/search");
-        if (!response.ok) {
+        const pageSize = 20;
+        const firstResponse = await fetch(
+          `/api/assets/search?page=0&size=${pageSize}`,
+        );
+        if (!firstResponse.ok) {
           throw new Error("자산 목록 조회 실패");
         }
-        const data = await response.json();
+        const firstPage = await firstResponse.json();
+        const allAssets = [...firstPage.content];
 
-        setAssets(data.content);
+        for (let page = 1; page < firstPage.totalPages; page += 1) {
+          const response = await fetch(
+            `/api/assets/search?page=${page}&size=${pageSize}`,
+          );
+          if (!response.ok) {
+            throw new Error("자산 목록 조회 실패");
+          }
+
+          const data = await response.json();
+          allAssets.push(...data.content);
+        }
+
+        setAssets(allAssets);
       } catch (error) {
         setError(error.message);
       }

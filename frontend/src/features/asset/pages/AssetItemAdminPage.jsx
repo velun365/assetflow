@@ -182,7 +182,7 @@ const AssetItemAdminPage = () => {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-list-page">
       <div className="page-heading">
         <div>
           <h1>자산 품목 목록</h1>
@@ -260,9 +260,16 @@ const AssetItemAdminPage = () => {
                         <button
                           type="button"
                           className="table-action"
-                          disabled={["RENTED", "DISPOSED"].includes(
-                            assetItem.assetItemStatus,
-                          )}
+                          disabled={
+                            ["RENTED", "DISPOSED"].includes(
+                              assetItem.assetItemStatus,
+                            ) || assetItem.hasReadyReservation
+                          }
+                          title={
+                            assetItem.hasReadyReservation
+                              ? "대여 준비 중인 예약이 있어 수정할 수 없습니다."
+                              : undefined
+                          }
                           onClick={() => startEdit(assetItem)}
                         >
                           수정
@@ -274,6 +281,12 @@ const AssetItemAdminPage = () => {
                             <button
                               type="button"
                               className="table-action table-action--danger"
+                              disabled={assetItem.hasReadyReservation}
+                              title={
+                                assetItem.hasReadyReservation
+                                  ? "대여 준비 중인 예약이 있어 폐기할 수 없습니다."
+                                  : undefined
+                              }
                               onClick={() =>
                                 deleteAssetItem(assetItem.assetItemId)
                               }
@@ -383,9 +396,10 @@ const AssetItemAdminPage = () => {
         {assetItems.length === 0 && !error && (
           <p className="empty-state">등록된 자산 품목이 없습니다.</p>
         )}
+      </div>
 
-        {pageInfo.totalPages > 0 && (
-          <div className="pagination">
+      {pageInfo.totalPages > 0 && (
+        <div className="pagination">
             <button
               type="button"
               className="pagination__button"
@@ -413,9 +427,8 @@ const AssetItemAdminPage = () => {
             >
               다음
             </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

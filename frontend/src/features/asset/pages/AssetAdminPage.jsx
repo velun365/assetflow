@@ -59,7 +59,7 @@ function AssetAdminPage() {
     const loadInitialData = async () => {
       try {
         const [assetResponse, categoryData] = await Promise.all([
-          fetch("/api/assets/search?page=0"),
+          fetch("/api/assets/search?page=0&size=10"),
           fetchCategories(),
         ]);
 
@@ -87,6 +87,7 @@ function AssetAdminPage() {
       }
 
       params.append("page", pageNumber);
+      params.append("size", 10);
 
       const response = await fetch(`/api/assets/search?${params.toString()}`);
 
@@ -189,7 +190,7 @@ function AssetAdminPage() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-list-page">
       <div className="page-heading">
         <div>
           <h1>자산 목록</h1>
@@ -287,9 +288,7 @@ function AssetAdminPage() {
                             />
                           </div>
                           <div className="form-field">
-                            <label
-                              htmlFor={`asset-category-${asset.assetId}`}
-                            >
+                            <label htmlFor={`asset-category-${asset.assetId}`}>
                               카테고리
                             </label>
                             <select
@@ -356,39 +355,39 @@ function AssetAdminPage() {
         {assets.length === 0 && (
           <p className="empty-state">조회된 자산이 없습니다.</p>
         )}
-
-        {pageInfo.totalPages > 0 && (
-          <div className="pagination">
-            <button
-              type="button"
-              className="pagination__button"
-              disabled={pageInfo.first}
-              onClick={() => loadAssets(pageInfo.number - 1)}
-            >
-              이전
-            </button>
-            {Array.from({ length: pageInfo.totalPages }).map((_, index) => (
-              <button
-                type="button"
-                className="pagination__button"
-                key={index}
-                onClick={() => loadAssets(index)}
-                disabled={pageInfo.number === index}
-              >
-                {index + 1}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="pagination__button"
-              disabled={pageInfo.last}
-              onClick={() => loadAssets(pageInfo.number + 1)}
-            >
-              다음
-            </button>
-          </div>
-        )}
       </div>
+
+      {pageInfo.totalPages > 0 && (
+        <div className="pagination">
+          <button
+            type="button"
+            className="pagination__button"
+            disabled={pageInfo.first}
+            onClick={() => loadAssets(pageInfo.number - 1)}
+          >
+            이전
+          </button>
+          {Array.from({ length: pageInfo.totalPages }).map((_, index) => (
+            <button
+              type="button"
+              className="pagination__button"
+              key={index}
+              onClick={() => loadAssets(index)}
+              disabled={pageInfo.number === index}
+            >
+              {index + 1}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="pagination__button"
+            disabled={pageInfo.last}
+            onClick={() => loadAssets(pageInfo.number + 1)}
+          >
+            다음
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -37,7 +37,7 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                         member.name,
                         assetItem.id,
                         asset.name,
-                        loan.loanDate,
+                            loan.loanDate,
                         loan.dueDate,
                         loan.returnDate
                 ))
@@ -48,11 +48,14 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                 .where(
                         loanStatusEq(condition.getLoanStatus()),
                         memberNameContains(condition.getMemberName()),
-                        assetItemIdEq(condition.getAssetItemId()),
+                        assetNameContains(condition.getAssetName()),
                         loanDateGoe(condition.getLoanDateFrom()),
                         loanDateLoe(condition.getLoanDateTo())
                 )
-                .orderBy(loan.loanDate.desc())
+                .orderBy(
+                        loan.loanDate.desc(),
+                        loan.id.desc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -68,7 +71,7 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                 .where(
                         loanStatusEq(condition.getLoanStatus()),
                         memberNameContains(condition.getMemberName()),
-                        assetItemIdEq(condition.getAssetItemId()),
+                        assetNameContains(condition.getAssetName()),
                         loanDateGoe(condition.getLoanDateFrom()),
                         loanDateLoe(condition.getLoanDateTo())
                 );
@@ -86,8 +89,10 @@ public class LoanRepositoryImpl implements LoanRepositoryCustom{
                 : null;
     }
 
-    private BooleanExpression assetItemIdEq(Long assetItemId) {
-        return assetItemId != null ? assetItem.id.eq(assetItemId) : null;
+    private BooleanExpression assetNameContains(String assetName) {
+        return hasText(assetName)
+                ? asset.name.contains(assetName)
+                : null;
     }
 
 
