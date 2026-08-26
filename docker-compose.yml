@@ -1,0 +1,21 @@
+services:
+  backend:
+    image: assetflow-backend
+    container_name: assetflow-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://host.docker.internal:3306/assetflow
+      DB_USERNAME: user
+      DB_PASSWORD: 1234
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  frontend:
+    image: assetflow-frontend
+    container_name: assetflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

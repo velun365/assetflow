@@ -1,0 +1,1 @@
+assetflow-deploy.tar.gz add .git statusgit commit -m "Docker 배포 환경 및 Spring 프로필 설정 구성"git push origin main
