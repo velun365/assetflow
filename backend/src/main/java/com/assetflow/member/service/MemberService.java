@@ -3,6 +3,7 @@ package com.assetflow.member.service;
 import com.assetflow.department.Department;
 import com.assetflow.department.repository.DepartmentRepository;
 import com.assetflow.member.Member;
+import com.assetflow.member.MemberStatus;
 import com.assetflow.member.dto.*;
 import com.assetflow.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -111,17 +112,25 @@ public class MemberService {
 
     @Transactional
     public void updateMemberByAdmin(
+            Member currentAdmin,
             Long memberId,
             MemberAdminUpdateRequest request
     ){
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+                .orElseThrow(() ->
+                        new IllegalStateException("존재하지 않는 회원입니다."));
+
+        if (currentAdmin.getId().equals(memberId)
+                && request.getStatus() == MemberStatus.SUSPENDED) {
+            throw new IllegalStateException("본인 계정은 정지할 수 없습니다.");
+        }
 
         Department department = null;
 
         if (request.getDepartmentId() != null) {
             department = departmentRepository.findById(request.getDepartmentId())
-                    .orElseThrow(() -> new IllegalStateException("존재하지 않는 부서입니다."));
+                    .orElseThrow(() ->
+                            new IllegalStateException("존재하지 않는 부서입니다."));
         }
 
         member.changeDepartment(department);

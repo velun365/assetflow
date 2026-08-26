@@ -190,7 +190,7 @@ const AssetDetailPage = () => {
                 className="detail-image__img"
               />
             ) : (
-              "AF"
+              <span className="detail-image__placeholder">이미지 없음</span>
             )}
           </div>
           {(user?.role === "ADMIN" || user?.role === "MANAGER") && (

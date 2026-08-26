@@ -7,8 +7,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:mysql://host.docker.internal:3306/assetflow
-      DB_USERNAME: user
-      DB_PASSWORD: 1234
+      DB_USERNAME: admin
+      DB_PASSWORD: velun365
     volumes:
       - ./backend/uploads:/app/uploads
 

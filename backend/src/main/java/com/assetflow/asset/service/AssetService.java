@@ -1,13 +1,17 @@
 package com.assetflow.asset.service;
 
 import com.assetflow.asset.Asset;
+import com.assetflow.asset.AssetItem;
 import com.assetflow.asset.AssetItemStatus;
 import com.assetflow.asset.Category;
 import com.assetflow.asset.dto.*;
 import com.assetflow.asset.image.ImagesStorageService;
+import com.assetflow.asset.repository.AssetItemRepository;
 import com.assetflow.asset.repository.AssetRepository;
 import com.assetflow.asset.repository.CategoryRepository;
+import com.assetflow.loan.repository.LoanRepository;
 import com.assetflow.reservation.ReservationStatus;
+import com.assetflow.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +26,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AssetService {
     private final AssetRepository assetRepository;
+    private final AssetItemRepository assetItemRepository;
     private final CategoryRepository categoryRepository;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
     private final ImagesStorageService imagesStorageService;
 
     @Transactional
@@ -93,8 +100,19 @@ public class AssetService {
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new IllegalArgumentException("존재 하지않는 자산입니다."));
 
-        if (!asset.getAssetItems().isEmpty()) {
-            throw new IllegalStateException("자산 품목이 존재하는 자산은 삭제 할 수 없습니다.");
+        List<AssetItem> assetItems = assetItemRepository.findByAssetId(assetId);
+
+        if (!assetItems.isEmpty()) {
+            boolean hasLoanHistory = loanRepository.existsByAssetItemAssetId(assetId);
+            boolean hasReservationHistory = reservationRepository.existsByAssetItemAssetId(assetId);
+
+            if (hasLoanHistory || hasReservationHistory) {
+                throw new IllegalStateException(
+                        "대여 또는 예약 이력이 존재하는 자산은 삭제할 수 없습니다."
+                );
+            }
+
+            assetItemRepository.deleteAllInBatch(assetItems);
         }
 
         imagesStorageService.delete(asset.getImagePath());

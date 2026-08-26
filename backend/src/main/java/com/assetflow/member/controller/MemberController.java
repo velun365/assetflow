@@ -61,9 +61,18 @@ public class MemberController {
     @PatchMapping("/{memberId}")
     public void updateMemberByAdmin(
             @PathVariable Long memberId,
-            @Valid @RequestBody MemberAdminUpdateRequest request
+            @Valid @RequestBody MemberAdminUpdateRequest request,
+            Authentication authentication
     ) {
-        memberService.updateMemberByAdmin(memberId, request);
-    }
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
 
+        Member currentAdmin = userDetails.getMember();
+
+        memberService.updateMemberByAdmin(
+                currentAdmin,
+                memberId,
+                request
+        );
+    }
 }

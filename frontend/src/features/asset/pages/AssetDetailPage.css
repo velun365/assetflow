@@ -118,6 +118,13 @@
   display: block;
   object-fit: cover;
 }
+
+.detail-image__placeholder {
+  color: var(--slate-500);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 @media (max-width: 820px) {
   .asset-detail-page .detail-hero {
     grid-template-columns: 1fr;

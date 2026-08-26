@@ -250,7 +250,7 @@ function MemberAdminPage() {
             <tbody>
               {members.map((member) => {
                 const isEditing = editingId === member.memberId;
-
+                const isSelf = user?.memberId === member.memberId;
                 return (
                   <tr key={member.memberId}>
                     <td className="data-table__primary">{member.loginId}</td>
@@ -263,6 +263,10 @@ function MemberAdminPage() {
                           className="table-edit-select"
                           value={editStatus}
                           onChange={(e) => setEditStatus(e.target.value)}
+                          disabled={isSelf}
+                          title={
+                            isSelf ? "본인 계정 상태는 변경할 수 없습니다." : ""
+                          }
                         >
                           <option value="ACTIVE">ACTIVE</option>
                           <option value="SUSPENDED">SUSPENDED</option>
@@ -340,35 +344,35 @@ function MemberAdminPage() {
       </div>
 
       <div className="pagination">
+        <button
+          type="button"
+          className="pagination__button"
+          onClick={() => handlePageChange(pageInfo.number - 1)}
+          disabled={pageInfo.first}
+        >
+          이전
+        </button>
+
+        {Array.from({ length: pageInfo.totalPages }, (_, index) => (
           <button
             type="button"
             className="pagination__button"
-            onClick={() => handlePageChange(pageInfo.number - 1)}
-            disabled={pageInfo.first}
+            key={index}
+            onClick={() => handlePageChange(index)}
+            disabled={pageInfo.number === index}
           >
-            이전
+            {index + 1}
           </button>
+        ))}
 
-          {Array.from({ length: pageInfo.totalPages }, (_, index) => (
-            <button
-              type="button"
-              className="pagination__button"
-              key={index}
-              onClick={() => handlePageChange(index)}
-              disabled={pageInfo.number === index}
-            >
-              {index + 1}
-            </button>
-          ))}
-
-          <button
-            type="button"
-            className="pagination__button"
-            onClick={() => handlePageChange(pageInfo.number + 1)}
-            disabled={pageInfo.last}
-          >
-            다음
-          </button>
+        <button
+          type="button"
+          className="pagination__button"
+          onClick={() => handlePageChange(pageInfo.number + 1)}
+          disabled={pageInfo.last}
+        >
+          다음
+        </button>
       </div>
     </div>
   );

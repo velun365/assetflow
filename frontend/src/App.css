@@ -76,11 +76,13 @@ button.mobile-menu-button {
 }
 
 .sidebar-nav {
+  flex: 1;
   width: 100%;
   min-width: 0;
-  flex: 1;
-  overflow-x: hidden;
   overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: none;
 }
 
 .sidebar-section,
@@ -89,7 +91,9 @@ button.mobile-menu-button {
   min-width: 0;
   max-width: 100%;
 }
-
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
 .sidebar-role-label {
   margin: 24px 12px 9px;
   color: #71819a;
