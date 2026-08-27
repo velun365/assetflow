@@ -8,5 +8,5 @@ import lombok.Setter;
 public class AssetSearchCondition {
     private String name;
     private String categoryName;
-
+    private Boolean activeOnly;
 }

@@ -20,12 +20,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LoanService {
+    private static final ZoneId SEOUL_ZONE = ZoneId.of("Asia/Seoul");
+
     private final LoanRepository loanRepository;
     private final AssetItemRepository assetItemRepository;
     private final ReservationRepository reservationRepository;
@@ -160,10 +163,11 @@ public class LoanService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *",
+            zone = "Asia/Seoul")
     public void updateOverdueLoan() {
         List<Loan> overLoans = loanRepository.findByLoanStatusAndDueDateBeforeAndReturnDateIsNull(
-                LoanStatus.RENTED, LocalDate.now()
+                LoanStatus.RENTED, LocalDate.now(SEOUL_ZONE)
         );
         overLoans.forEach(loan -> loan.markOverdue());
     }

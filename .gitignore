@@ -38,3 +38,8 @@ out/
 
 # Runtime uploads
 /backend/uploads/
+
+# Local deployment secrets
+.env
+.env.*
+!.env.example

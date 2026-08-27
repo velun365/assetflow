@@ -20,6 +20,9 @@ function LoanCreatePage() {
   });
   const [selectAsset, setSelectAsset] = useState(null);
   const [assetItems, setAssetItems] = useState([]);
+  const visibleAssetItems = assetItems.filter(
+    (assetItem) => assetItem.assetItemStatus !== "DISPOSED",
+  );
   const [error, setError] = useState("");
   const navigate = useNavigate();
   useEffect(() => {
@@ -41,7 +44,9 @@ function LoanCreatePage() {
   useEffect(() => {
     const loadInitialAssets = async () => {
       try {
-        const response = await fetch("/api/assets/search?page=0&size=9");
+        const response = await fetch(
+          "/api/assets/search?activeOnly=true&page=0&size=9",
+        );
         if (!response.ok) {
           throw new Error("자산목록 조회에 실패하였습니다.");
         }
@@ -64,6 +69,7 @@ function LoanCreatePage() {
     try {
       setError("");
       const params = new URLSearchParams();
+      params.append("activeOnly", "true");
       const name = filters.name.trim();
 
       if (name) {
@@ -246,7 +252,7 @@ function LoanCreatePage() {
               </button>
             </div>
             <div className="asset-grid">
-              {assetItems.map((assetItem) => {
+              {visibleAssetItems.map((assetItem) => {
                 const canLoan =
                   assetItem.assetItemStatus === "AVAILABLE" &&
                   (!assetItem.hasReadyReservation || assetItem.readyByMe);
@@ -284,7 +290,7 @@ function LoanCreatePage() {
                   </div>
                 );
               })}
-              {assetItems.length === 0 && (
+              {visibleAssetItems.length === 0 && (
                 <p className="empty-state card">등록된 자산 품목이 없습니다.</p>
               )}
             </div>

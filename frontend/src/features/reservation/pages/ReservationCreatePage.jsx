@@ -20,7 +20,9 @@ const ReservationCreatePage = () => {
   });
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [assetItems, setAssetItems] = useState([]);
-
+  const visibleAssetItems = assetItems.filter(
+    (assetItem) => assetItem.assetItemStatus !== "DISPOSED",
+  );
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -46,7 +48,9 @@ const ReservationCreatePage = () => {
   useEffect(() => {
     const loadInitialAssets = async () => {
       try {
-        const response = await fetch("/api/assets/search?page=0&size=9");
+        const response = await fetch(
+          "/api/assets/search?activeOnly=true&page=0&size=9",
+        );
 
         if (!response.ok) {
           throw new Error("자산 목록 조회에 실패했습니다.");
@@ -72,6 +76,7 @@ const ReservationCreatePage = () => {
     try {
       setError("");
       const params = new URLSearchParams();
+      params.append("activeOnly", "true");
       const name = filters.name.trim();
 
       if (name) {
@@ -279,11 +284,11 @@ const ReservationCreatePage = () => {
             </button>
           </div>
 
-          {assetItems.length === 0 ? (
+          {visibleAssetItems.length === 0 ? (
             <p className="empty-state card">등록된 자산 품목이 없습니다.</p>
           ) : (
             <div className="asset-grid">
-              {assetItems.map((assetItem) => {
+              {visibleAssetItems.map((assetItem) => {
                 const isReservable =
                   assetItem.assetItemStatus === "RENTED" &&
                   !assetItem.borrowedByMe &&
@@ -304,7 +309,7 @@ const ReservationCreatePage = () => {
                             ? "예약 가능"
                             : assetItem.hasReadyReservation
                               ? "예약자 대여 대기"
-                            : "현재 대여 가능"}
+                              : "현재 대여 가능"}
                     </p>
 
                     <button
@@ -320,9 +325,9 @@ const ReservationCreatePage = () => {
                             ? "예약하기"
                             : assetItem.hasReadyReservation
                               ? "예약자 대여 대기"
-                            : assetItem.assetItemStatus === "AVAILABLE"
-                              ? "현재 대여 가능"
-                              : "예약 불가"}
+                              : assetItem.assetItemStatus === "AVAILABLE"
+                                ? "현재 대여 가능"
+                                : "예약 불가"}
                     </button>
                   </div>
                 );

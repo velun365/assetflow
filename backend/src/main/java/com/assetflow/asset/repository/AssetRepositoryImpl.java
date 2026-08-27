@@ -1,9 +1,11 @@
 package com.assetflow.asset.repository;
 
+import com.assetflow.asset.QAssetItem;
 import com.assetflow.asset.dto.AssetSearchCondition;
 import com.assetflow.asset.dto.AssetSearchResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
@@ -27,7 +29,10 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
     }
 
     @Override
-    public Page<AssetSearchResponse> searchAssets(AssetSearchCondition condition, Pageable pageable) {
+    public Page<AssetSearchResponse> searchAssets(
+            AssetSearchCondition condition,
+            Pageable pageable
+    ) {
         List<AssetSearchResponse> content = queryFactory
                 .select(
                         Projections.constructor(
@@ -35,7 +40,11 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                                 asset.id,
                                 asset.name,
                                 category.name,
+
+                                // 전체 품목 수
                                 assetItem.id.countDistinct(),
+
+                                // 대여 가능 품목 수
                                 new CaseBuilder()
                                         .when(
                                                 assetItem.assetItemStatus.eq(AssetItemStatus.AVAILABLE)
@@ -44,7 +53,8 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                                         .then(1L)
                                         .otherwise(0L)
                                         .sum()
-                        ))
+                        )
+                )
                 .from(asset)
                 .leftJoin(asset.category, category)
                 .leftJoin(asset.assetItems, assetItem)
@@ -52,9 +62,10 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                 .on(reservation.reservationStatus.eq(ReservationStatus.READY))
                 .where(
                         nameContains(condition.getName()),
-                        categoryNameContains(condition.getCategoryName())
+                        categoryNameContains(condition.getCategoryName()),
+                        hasNonDisposedAssetItem(condition.getActiveOnly())
                 )
-                .groupBy(asset.id ,asset.name, category.name)
+                .groupBy(asset.id, asset.name, category.name)
                 .orderBy(asset.id.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -66,14 +77,33 @@ public class AssetRepositoryImpl implements AssetRepositoryCustom {
                 .leftJoin(asset.category, category)
                 .where(
                         nameContains(condition.getName()),
-                        categoryNameContains(condition.getCategoryName())
+                        categoryNameContains(condition.getCategoryName()),
+                        hasNonDisposedAssetItem(condition.getActiveOnly())
                 );
 
-        return PageableExecutionUtils.getPage(content, pageable, () -> countQuery.fetchOne());
-
+        return PageableExecutionUtils.getPage(
+                content,
+                pageable,
+                () -> countQuery.fetchOne()
+        );
     }
 
+    private BooleanExpression hasNonDisposedAssetItem(Boolean activeOnly) {
+        if (!Boolean.TRUE.equals(activeOnly)) {
+            return null;
+        }
 
+        QAssetItem subAssetItem = new QAssetItem("subAssetItem");
+
+        return JPAExpressions
+                .selectOne()
+                .from(subAssetItem)
+                .where(
+                        subAssetItem.asset.eq(asset),
+                        subAssetItem.assetItemStatus.ne(AssetItemStatus.DISPOSED)
+                )
+                .exists();
+    }
 
 
     private BooleanExpression nameContains(String name) {

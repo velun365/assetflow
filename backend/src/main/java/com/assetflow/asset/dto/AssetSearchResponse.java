@@ -12,5 +12,4 @@ public class AssetSearchResponse {
     private Long totalCount;
     private Long availableCount;
 
-
 }
