@@ -1,20 +1,25 @@
 services:
   backend:
+    build: ./backend
     image: assetflow-backend
     container_name: assetflow-backend
+    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL: ${DB_URL:?Set DB_URL in .env}
+      DB_USERNAME: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Seoul
     volumes:
       - ./backend/uploads:/app/uploads
 
   frontend:
+    build: ./frontend
     image: assetflow-frontend
     container_name: assetflow-frontend
+    restart: unless-stopped
     ports:
       - "80:80"
     depends_on:

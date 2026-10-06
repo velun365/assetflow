@@ -41,3 +41,8 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Copy a single executable archive into the runtime image.
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+}
